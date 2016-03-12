@@ -15,17 +15,6 @@
 
 void test_serialize()
 {
-    char hex0[] = "28969cdfa74a12c82f3bad960b0b000aca2ac329deea5c2328ebc6f2ba9802c1";
-    char hex1[] = "28969cdfa74a12c82f3bad960b0b000aca2ac329deea5c2328ebc6f2ba9802c2";
-    char hex2[] = "28969cdfa74a12c82f3bad960b0b000aca2ac329deea5c2328ebc6f2ba9802c3";
-    uint8_t* hash0 = malloc(32);
-    uint8_t* hash1 = malloc(32);
-    uint8_t* hash2 = malloc(32);
-
-    memcpy(hash0, utils_hex_to_uint8(hex0), 32);
-    memcpy(hash1, utils_hex_to_uint8(hex1), 32);
-    memcpy(hash2, utils_hex_to_uint8(hex2), 32);
-
     cstring* s2 = cstr_new_sz(200);
     ser_u16(s2, 0xAAFF);
     ser_u32(s2, 0xDDBBAAFF);
