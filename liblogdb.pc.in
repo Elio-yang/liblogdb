@@ -4,7 +4,7 @@ libdir=@libdir@
 includedir=@includedir@
 
 Name: liblogdb
-Description: safe and simple append only database written in C
+Description: A save and simple append only key-/value-database format written in C
 URL: https://github.com/logdb/logdb
 Version: @PACKAGE_VERSION@
 Cflags: -I${includedir}
