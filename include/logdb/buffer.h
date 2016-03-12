@@ -1,12 +1,42 @@
-#ifndef __LIBCCOIN_BUFFER_H__
-#define __LIBCCOIN_BUFFER_H__
-/* Copyright 2012 exMULTI, Inc.
- * Distributed under the MIT/X11 software license, see the accompanying
- * file COPYING or http://www.opensource.org/licenses/mit-license.php.
+/*
+
+ The MIT License (MIT)
+
+ Copyright (c) 2012 exMULTI, Inc.
+ Copyright (c) 2015 Jonas Schnelli
+
+ Permission is hereby granted, free of charge, to any person obtaining
+ a copy of this software and associated documentation files (the "Software"),
+ to deal in the Software without restriction, including without limitation
+ the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ and/or sell copies of the Software, and to permit persons to whom the
+ Software is furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included
+ in all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES
+ OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ OTHER DEALINGS IN THE SOFTWARE.
+
  */
+
+
+#ifndef __LIBBTC_BUFFER_H__
+#define __LIBBTC_BUFFER_H__
+
+#include <logdb/logdb.h>
 
 #include <stdint.h>
 #include <sys/types.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct buffer {
     void* p;
@@ -18,8 +48,12 @@ struct const_buffer {
     size_t len;
 };
 
-extern int buffer_equal(const void* a, const void* b);
-extern void buffer_free(void* struct_buffer);
-extern struct buffer* buffer_copy(const void* data, size_t data_len);
+LIBLOGDB_API int buffer_equal(const void* a, const void* b);
+LIBLOGDB_API void buffer_free(void* struct_buffer);
+LIBLOGDB_API struct buffer* buffer_copy(const void* data, size_t data_len);
 
-#endif /* __LIBCCOIN_BUFFER_H__ */
+#ifdef __cplusplus
+}
+#endif
+
+#endif //__LIBBTC_BUFFER_H__

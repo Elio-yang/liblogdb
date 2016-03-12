@@ -25,8 +25,8 @@
  
  */
 
-#ifndef LIBBTC_SERIALIZE_H__
-#define LIBBTC_SERIALIZE_H__
+#ifndef LIBLOGDB_SERIALIZE_H__
+#define LIBLOGDB_SERIALIZE_H__
 
 #include <logdb/cstr.h>
 #include <logdb/buffer.h>
@@ -40,19 +40,19 @@
 extern "C" {
 #endif
 
-extern void ser_bytes(cstring* s, const void* p, size_t len);
-extern void ser_u16(cstring* s, uint16_t v_);
-extern void ser_u32(cstring* s, uint32_t v_);
-extern void ser_i32(cstring* s, int32_t v_);
-extern void ser_u64(cstring* s, uint64_t v_);
+LIBLOGDB_API void ser_bytes(cstring* s, const void* p, size_t len);
+LIBLOGDB_API void ser_u16(cstring* s, uint16_t v_);
+LIBLOGDB_API void ser_u32(cstring* s, uint32_t v_);
+LIBLOGDB_API void ser_i32(cstring* s, int32_t v_);
+LIBLOGDB_API void ser_u64(cstring* s, uint64_t v_);
 static inline void ser_u256(cstring* s, const unsigned char* v_)
 {
     ser_bytes(s, v_, 32);
 }
 
-extern void ser_varlen(cstring* s, uint32_t vlen);
-extern void ser_str(cstring* s, const char* s_in, size_t maxlen);
-extern void ser_varstr(cstring* s, cstring* s_in);
+LIBLOGDB_API void ser_varlen(cstring* s, uint32_t vlen);
+LIBLOGDB_API void ser_str(cstring* s, const char* s_in, size_t maxlen);
+LIBLOGDB_API void ser_varstr(cstring* s, cstring* s_in);
 
 static inline void ser_s32(cstring* s, int32_t v_)
 {
@@ -64,13 +64,13 @@ static inline void ser_s64(cstring* s, int64_t v_)
     ser_u64(s, (uint64_t)v_);
 }
 
-extern int deser_skip(struct const_buffer* buf, size_t len);
-extern int deser_bytes(void* po, struct const_buffer* buf, size_t len);
-extern int deser_u16(uint16_t* vo, struct const_buffer* buf);
-extern int deser_u32(uint32_t* vo, struct const_buffer* buf);
-extern int deser_u64(uint64_t* vo, struct const_buffer* buf);
+LIBLOGDB_API int deser_skip(struct const_buffer* buf, size_t len);
+LIBLOGDB_API int deser_bytes(void* po, struct const_buffer* buf, size_t len);
+LIBLOGDB_API int deser_u16(uint16_t* vo, struct const_buffer* buf);
+LIBLOGDB_API int deser_u32(uint32_t* vo, struct const_buffer* buf);
+LIBLOGDB_API int deser_u64(uint64_t* vo, struct const_buffer* buf);
 
-extern int deser_i32(int32_t* vo, struct const_buffer* buf);
+LIBLOGDB_API int deser_i32(int32_t* vo, struct const_buffer* buf);
 
 
 static inline int deser_u256(uint8_t* vo, struct const_buffer* buf)
@@ -78,10 +78,10 @@ static inline int deser_u256(uint8_t* vo, struct const_buffer* buf)
     return deser_bytes(vo, buf, 32);
 }
 
-extern int deser_varlen(uint32_t* lo, struct const_buffer* buf);
-extern int deser_varlen_file(uint32_t* lo, FILE *file, uint8_t *rawdata, size_t *buflen_inout);
-extern int deser_str(char* so, struct const_buffer* buf, size_t maxlen);
-extern int deser_varstr(cstring** so, struct const_buffer* buf);
+LIBLOGDB_API int deser_varlen(uint32_t* lo, struct const_buffer* buf);
+LIBLOGDB_API int deser_varlen_file(uint32_t* lo, FILE *file, uint8_t *rawdata, size_t *buflen_inout);
+LIBLOGDB_API int deser_str(char* so, struct const_buffer* buf, size_t maxlen);
+LIBLOGDB_API int deser_varstr(cstring** so, struct const_buffer* buf);
 
 static inline int deser_s64(int64_t* vo, struct const_buffer* buf)
 {
@@ -92,4 +92,4 @@ static inline int deser_s64(int64_t* vo, struct const_buffer* buf)
 }
 #endif
 
-#endif /* LIBBTC_SERIALIZE_H__ */
+#endif /* LIBLOGDB_SERIALIZE_H__ */

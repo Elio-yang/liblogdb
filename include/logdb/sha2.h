@@ -29,11 +29,17 @@
  * SUCH DAMAGE.
  */
 
-#ifndef __SHA2_H__
-#define __SHA2_H__
+#ifndef __LOGDB_SHA2_H__
+#define __LOGDB_SHA2_H__
+
+#include <logdb/logdb.h>
 
 #include <stdint.h>
 #include <stddef.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define SHA256_BLOCK_LENGTH 64
 #define SHA256_DIGEST_LENGTH 32
@@ -53,16 +59,21 @@ typedef struct _SHA512_CTX {
     uint8_t buffer[SHA512_BLOCK_LENGTH];
 } SHA512_CTX;
 
-void sha256_Init(SHA256_CTX*);
-void sha256_Update(SHA256_CTX*, const uint8_t*, size_t);
-void sha256_Final(uint8_t[SHA256_DIGEST_LENGTH], SHA256_CTX*);
-void sha256_Raw(const uint8_t*, size_t, uint8_t[SHA256_DIGEST_LENGTH]);
+LIBLOGDB_API void sha256_Init(SHA256_CTX*);
+LIBLOGDB_API void sha256_Update(SHA256_CTX*, const uint8_t*, size_t);
+LIBLOGDB_API void sha256_Final(uint8_t[SHA256_DIGEST_LENGTH], SHA256_CTX*);
+LIBLOGDB_API void sha256_Raw(const uint8_t*, size_t, uint8_t[SHA256_DIGEST_LENGTH]);
 
-void sha512_Init(SHA512_CTX*);
-void sha512_Update(SHA512_CTX*, const uint8_t*, size_t);
-void sha512_Final(uint8_t[SHA512_DIGEST_LENGTH], SHA512_CTX*);
-void sha512_Raw(const uint8_t*, size_t, uint8_t[SHA512_DIGEST_LENGTH]);
+LIBLOGDB_API void sha512_Init(SHA512_CTX*);
+LIBLOGDB_API void sha512_Update(SHA512_CTX*, const uint8_t*, size_t);
+LIBLOGDB_API void sha512_Final(uint8_t[SHA512_DIGEST_LENGTH], SHA512_CTX*);
+LIBLOGDB_API void sha512_Raw(const uint8_t*, size_t, uint8_t[SHA512_DIGEST_LENGTH]);
 
-void hmac_sha256(const uint8_t* key, const uint32_t keylen, const uint8_t* msg, const uint32_t msglen, uint8_t* hmac);
-void hmac_sha512(const uint8_t* key, const uint32_t keylen, const uint8_t* msg, const uint32_t msglen, uint8_t* hmac);
+LIBLOGDB_API void hmac_sha256(const uint8_t* key, const uint32_t keylen, const uint8_t* msg, const uint32_t msglen, uint8_t* hmac);
+LIBLOGDB_API void hmac_sha512(const uint8_t* key, const uint32_t keylen, const uint8_t* msg, const uint32_t msglen, uint8_t* hmac);
+
+#ifdef __cplusplus
+}
 #endif
+
+#endif //__LOGDB_SHA2_H__
