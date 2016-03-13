@@ -60,4 +60,4 @@ LIBLOGDB_API size_t logdb_memdb_size(logdb_log_db* db);
 }
 #endif
 
-#endif //__LIBLOGDB_LOGDB_MEMDB_H__
+#endif /* __LIBLOGDB_LOGDB_MEMDB_H__ */

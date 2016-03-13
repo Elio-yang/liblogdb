@@ -35,6 +35,8 @@
 void logdb_memdb_append(void* ctx, logdb_logdb_record *rec)
 {
     logdb_log_db *db = (logdb_log_db *)ctx;
+    logdb_logdb_record *rec_dup;
+    logdb_logdb_record *current_db_head;
 
     if (rec->mode == RECORD_TYPE_ERASE && db->memdb_head)
     {
@@ -42,19 +44,20 @@ void logdb_memdb_append(void* ctx, logdb_logdb_record *rec)
         return;
     }
 
-    // internal database:
-    // copy record and append to internal mem db (linked list)
-    logdb_logdb_record *rec_dup = logdb_logdb_record_copy(rec);
-    logdb_logdb_record *current_db_head = db->memdb_head;
+    /* internal database:
+       copy record and append to internal mem db (linked list)
+    */
+    rec_dup = logdb_logdb_record_copy(rec);
+    current_db_head = db->memdb_head;
 
-    // if the list is NOT empty, link the current head
+    /* if the list is NOT empty, link the current head */
     if (current_db_head != NULL)
         current_db_head->next = rec_dup;
 
-    //link to previous element
+    /* link to previous element */
     rec_dup->prev = current_db_head;
 
-    //set the current head
+    /* set the current head */
     db->memdb_head = rec_dup;
 
     logdb_logdb_record_rm_desc(current_db_head, rec_dup->key);

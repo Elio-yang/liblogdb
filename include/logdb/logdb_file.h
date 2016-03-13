@@ -68,15 +68,15 @@ enum logdb_logdb_error {
     LOGDB_ERROR_WRONG_FILE_FORMAT = 300,
     LOGDB_ERROR_DATASTREAM_ERROR = 400,
     LOGDB_ERROR_CHECKSUM = 500,
-    LOGDB_ERROR_FILE_ALREADY_OPEN = 600,
+    LOGDB_ERROR_FILE_ALREADY_OPEN = 600
 };
 
 /** logdb handle */
 typedef struct logdb_log_db {
     FILE *file;
-    void (*mem_map_cb)(void*, logdb_logdb_record *); //callback for memory mapping
-    void *cb_ctx; //callback context
-    logdb_logdb_record *memdb_head; //optional non-schematic memory database
+    void (*mem_map_cb)(void*, logdb_logdb_record *); /* callback for memory mapping */
+    void *cb_ctx; /* callback context */
+    logdb_logdb_record *memdb_head; /* optional non-schematic memory database */
     logdb_logdb_record *cache_head;
     SHA256_CTX hashctx;
     uint8_t hashlen;
@@ -84,8 +84,8 @@ typedef struct logdb_log_db {
     uint32_t support_flags;
 } logdb_log_db;
 
-/////////// DB HANDLING
-//////////////////////////////////
+/* DB HANDLING
+////////////////////////////////// */
 /** creates new logdb handle, sets default values */
 LIBLOGDB_API logdb_log_db* logdb_logdb_new();
 
@@ -130,4 +130,4 @@ logdb_bool logdb_logdb_remove_existing_records(logdb_logdb_record *usehead, cstr
 }
 #endif
 
-#endif //__LIBLOGDB_LOGDB_H__
+#endif /* __LIBLOGDB_LOGDB_H__ */

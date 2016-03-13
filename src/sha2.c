@@ -590,6 +590,7 @@ void sha256_Final(sha2_byte digest[], SHA256_CTX* context)
 {
     sha2_word32* d = (sha2_word32*)digest;
     unsigned int usedspace;
+    sha2_word64* t;
 
     /* If no digest buffer is passed, we don't bother doing this: */
     if (digest != (sha2_byte*)0) {
@@ -623,7 +624,7 @@ void sha256_Final(sha2_byte digest[], SHA256_CTX* context)
             *context->buffer = 0x80;
         }
         /* Set the bit count: */
-        sha2_word64* t = (sha2_word64*)&context->buffer[SHA256_SHORT_BLOCK_LENGTH];
+        t = (sha2_word64*)&context->buffer[SHA256_SHORT_BLOCK_LENGTH];
         *t = context->bitcount;
 
         /* Final transform: */
@@ -885,7 +886,8 @@ void sha512_Update(SHA512_CTX* context, const sha2_byte* data, size_t len)
 void sha512_Last(SHA512_CTX* context)
 {
     unsigned int usedspace;
-
+    sha2_word64* t;
+    
     usedspace = (context->bitcount[0] >> 3) % SHA512_BLOCK_LENGTH;
 #if BYTE_ORDER == LITTLE_ENDIAN
     /* Convert FROM host byte order */
@@ -917,7 +919,6 @@ void sha512_Last(SHA512_CTX* context)
         *context->buffer = 0x80;
     }
     /* Store the length of input data (in bits): */
-    sha2_word64* t;
     t = (sha2_word64*)&context->buffer[SHA512_SHORT_BLOCK_LENGTH];
     *t = context->bitcount[1];
     t = (sha2_word64*)&context->buffer[SHA512_SHORT_BLOCK_LENGTH + 8];

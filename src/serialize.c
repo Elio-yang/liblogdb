@@ -30,10 +30,25 @@ void ser_i32(cstring* s, int32_t v_)
     ser_u32(s, (uint32_t) v_);
 }
 
+void ser_s32(cstring* s, int32_t v_)
+{
+    ser_u32(s, (uint32_t)v_);
+}
+
 void ser_u64(cstring* s, uint64_t v_)
 {
     uint64_t v = htole64(v_);
     cstr_append_buf(s, &v, sizeof(v));
+}
+
+void ser_s64(cstring* s, int64_t v_)
+{
+    ser_u64(s, (uint64_t)v_);
+}
+
+void ser_u256(cstring* s, const unsigned char* v_)
+{
+    ser_bytes(s, v_, 32);
 }
 
 void ser_varlen(cstring* s, uint32_t vlen)
@@ -81,10 +96,13 @@ void ser_varstr(cstring* s, cstring* s_in)
 
 int deser_skip(struct const_buffer* buf, size_t len)
 {
+    char *p;
     if (buf->len < len)
         return false;
 
-    buf->p += len;
+    p = (char *)buf->p;
+    p += len;
+    buf->p = p;
     buf->len -= len;
 
     return true;
@@ -92,11 +110,14 @@ int deser_skip(struct const_buffer* buf, size_t len)
 
 int deser_bytes(void* po, struct const_buffer* buf, size_t len)
 {
+    char *p;
     if (buf->len < len)
         return false;
 
     memcpy(po, buf->p, len);
-    buf->p += len;
+    p = (char *)buf->p;
+    p += len;
+    buf->p = p;
     buf->len -= len;
 
     return true;
@@ -146,6 +167,11 @@ int deser_u64(uint64_t* vo, struct const_buffer* buf)
     return true;
 }
 
+int deser_u256(uint8_t* vo, struct const_buffer* buf)
+{
+    return deser_bytes(vo, buf, 32);
+}
+
 int deser_varlen(uint32_t* lo, struct const_buffer* buf)
 {
     uint32_t len;
@@ -179,20 +205,22 @@ int deser_varlen(uint32_t* lo, struct const_buffer* buf)
 int deser_varlen_file(uint32_t* lo, FILE *file, uint8_t *rawdata, size_t *buflen_inout)
 {
     uint32_t len;
+    struct const_buffer buf;
+    unsigned char c;
+    const unsigned char bufp[sizeof(uint64_t)];
 
-    // check min size of the buffer
+    /* check min size of the buffer */
     if (*buflen_inout < sizeof(len))
         return false;
 
-    unsigned char c;
     if (fread(&c, 1, 1, file) != 1)
         return false;
 
     rawdata[0] = c;
     *buflen_inout = 1;
 
-    const unsigned char bufp[sizeof(uint64_t)];
-    struct const_buffer buf = { (void *)bufp, sizeof(uint64_t)};
+    buf.p = (void *)bufp;
+    buf.len = sizeof(uint64_t);
 
     if (c == 253) {
         uint16_t v16;
@@ -216,7 +244,7 @@ int deser_varlen_file(uint32_t* lo, FILE *file, uint8_t *rawdata, size_t *buflen
         uint64_t v64;
         if (fread((void *)buf.p, 1, sizeof(v64), file) != sizeof(v64))
             return false;
-        memcpy(rawdata+1, buf.p, sizeof(uint32_t)); //warning, truncate!
+        memcpy(rawdata+1, buf.p, sizeof(uint32_t)); /* warning, truncate! */
         *buflen_inout += sizeof(uint32_t);
         if (!deser_u64(&v64, &buf))
             return false;
@@ -232,11 +260,11 @@ int deser_varlen_file(uint32_t* lo, FILE *file, uint8_t *rawdata, size_t *buflen
 int deser_str(char* so, struct const_buffer* buf, size_t maxlen)
 {
     uint32_t len;
+    uint32_t skip_len = 0;
     if (!deser_varlen(&len, buf))
         return false;
 
     /* if input larger than buffer, truncate copy, skip remainder */
-    uint32_t skip_len = 0;
     if (len > maxlen) {
         skip_len = len - maxlen;
         len = maxlen;
@@ -258,25 +286,35 @@ int deser_str(char* so, struct const_buffer* buf, size_t maxlen)
 
 int deser_varstr(cstring** so, struct const_buffer* buf)
 {
+    uint32_t len;
+    cstring* s;
+    char *p;
+
     if (*so) {
         cstr_free(*so, 1);
         *so = NULL;
     }
 
-    uint32_t len;
     if (!deser_varlen(&len, buf))
         return false;
 
     if (buf->len < len)
         return false;
 
-    cstring* s = cstr_new_sz(len);
+    s = cstr_new_sz(len);
     cstr_append_buf(s, buf->p, len);
 
-    buf->p += len;
+    p = (char *)buf->p;
+    p += len;
+    buf->p = p;
     buf->len -= len;
 
     *so = s;
 
     return true;
+}
+
+int deser_s64(int64_t* vo, struct const_buffer* buf)
+{
+    return deser_u64((uint64_t*)vo, buf);
 }

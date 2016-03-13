@@ -56,13 +56,10 @@ LIBLOGDB_API int cstr_erase(cstring* s, size_t pos, ssize_t len);
 LIBLOGDB_API int cstr_append_buf(cstring* s, const void* buf, size_t sz);
 LIBLOGDB_API int cstr_append_cstr(cstring* s, cstring *append);
 
-LIBLOGDB_API static inline int cstr_append_c(cstring* s, char ch)
-{
-    return cstr_append_buf(s, &ch, 1);
-}
+    LIBLOGDB_API int cstr_append_c(cstring* s, char ch);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif //__LIBLOGDB_CSTR_H__
+#endif /* __LIBLOGDB_CSTR_H__ */

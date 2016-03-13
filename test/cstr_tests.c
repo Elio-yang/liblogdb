@@ -14,6 +14,11 @@
 
 void test_cstr()
 {
+    cstring* s1 = cstr_new("foo");
+    cstring* s2 = cstr_new("foo");
+    cstring* s3 = cstr_new("bar");
+    cstring* s4 = cstr_new("bar1");
+    
     cstring* s = cstr_new("foo");
     assert(s != NULL);
     assert(s->len == 3);
@@ -60,11 +65,6 @@ void test_cstr()
     assert(strcmp(s->str, "food") == 0);
 
     cstr_free(s, true);
-
-    cstring* s1 = cstr_new("foo");
-    cstring* s2 = cstr_new("foo");
-    cstring* s3 = cstr_new("bar");
-    cstring* s4 = cstr_new("bar1");
 
     assert(cstr_equal(s1, s2) == true);
     assert(cstr_equal(s1, s3) == false);

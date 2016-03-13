@@ -37,10 +37,9 @@
 #define kLOGDB_DEFAULT_HASH_LEN 8
 #define kLOGDB_DEFAULT_VERSION 1
 
-static const unsigned char file_hdr_magic[4] = {0xF9, 0xAA, 0x03, 0xBA}; //header magic
-static const unsigned char record_magic[4] = {0x88, 0x61, 0xAD, 0xFC}; //record magic
+static const unsigned char file_hdr_magic[4] = {0xF9, 0xAA, 0x03, 0xBA}; /* header magic */
+static const unsigned char record_magic[4] = {0x88, 0x61, 0xAD, 0xFC}; /* record magic */
 
-////////////////////////////////////
 
 logdb_log_db* logdb_logdb_new()
 {
@@ -50,7 +49,7 @@ logdb_log_db* logdb_logdb_new()
     db->cache_head = NULL;
     db->hashlen = kLOGDB_DEFAULT_HASH_LEN;
     db->version = kLOGDB_DEFAULT_VERSION;
-    db->support_flags = 0; //reserved for future changes
+    db->support_flags = 0; /* reserved for future changes */
     sha256_Init(&db->hashctx);
     logdb_logdb_set_mem_cb(db, db, logdb_memdb_append);
     return db;
@@ -58,7 +57,7 @@ logdb_log_db* logdb_logdb_new()
 
 void logdb_logdb_free_cachelist(logdb_log_db* db)
 {
-    // free the unwritten records list
+    /* free the unwritten records list */
     logdb_logdb_record *rec = db->cache_head;
     while (rec)
     {
@@ -71,6 +70,8 @@ void logdb_logdb_free_cachelist(logdb_log_db* db)
 
 void logdb_logdb_free(logdb_log_db* db)
 {
+    logdb_logdb_record *rec;
+
     if (!db)
         return;
 
@@ -82,8 +83,8 @@ void logdb_logdb_free(logdb_log_db* db)
 
     logdb_logdb_free_cachelist(db);
 
-    // free the internal database
-    logdb_logdb_record *rec = db->memdb_head;
+    /* free the internal database */
+    rec = db->memdb_head;
     while (rec)
     {
         logdb_logdb_record *prev_rec = rec->prev;
@@ -96,7 +97,7 @@ void logdb_logdb_free(logdb_log_db* db)
 
 void logdb_logdb_set_mem_cb(logdb_log_db* db, void *ctx, void (*new_cb)(void*, logdb_logdb_record *))
 {
-    // set the context passed in the callback, sender must care about lifetime of object
+    /* set the context passed in the callback, sender must care about lifetime of object */
     db->cb_ctx = ctx;
 
     db->mem_map_cb = new_cb;
@@ -104,6 +105,10 @@ void logdb_logdb_set_mem_cb(logdb_log_db* db, void *ctx, void (*new_cb)(void*, l
 
 logdb_bool logdb_logdb_load(logdb_log_db* handle, const char *file_path, logdb_bool create, enum logdb_logdb_error *error)
 {
+    uint32_t v;
+    logdb_logdb_record *rec;
+    enum logdb_logdb_error record_error;
+
     handle->file = fopen(file_path, create ? "a+b" : "r+b");
     if (handle->file == NULL)
     {
@@ -112,22 +117,22 @@ logdb_bool logdb_logdb_load(logdb_log_db* handle, const char *file_path, logdb_b
         return false;
     }
 
-    //write header magic
+    /* write header magic */
     if (create)
     {
-        //write header magic, version & support flags
+        /* write header magic, version & support flags */
         fwrite(file_hdr_magic, 4, 1, handle->file);
-        uint32_t v = htole32(handle->version);
-        fwrite(&v, sizeof(v), 1, handle->file); //uint32_t, LE
+        v = htole32(handle->version);
+        fwrite(&v, sizeof(v), 1, handle->file); /* uint32_t, LE */
         v = htole32(handle->support_flags);
-        fwrite(&v, sizeof(v), 1, handle->file); //uint32_t, LE
+        fwrite(&v, sizeof(v), 1, handle->file); /* uint32_t, LE */
 
-        // write hash len
-        fwrite(&handle->hashlen, 1, 1, handle->file); //uint8_t
+        /* write hash len */
+        fwrite(&handle->hashlen, 1, 1, handle->file); /* uint8_t */
     }
     else
     {
-        //read file magic, version, etc.
+        /* read file magic, version, etc. */
         unsigned char buf[4];
         if (fread(buf, 4, 1, handle->file) != 1 || memcmp(buf, file_hdr_magic, 4) != 0)
         {
@@ -136,8 +141,8 @@ logdb_bool logdb_logdb_load(logdb_log_db* handle, const char *file_path, logdb_b
             return false;
         }
 
-        // read and set version
-        uint32_t v = 0;
+        /* read and set version */
+        v = 0;
         if (fread(&v, sizeof(v), 1, handle->file) != 1)
         {
             if (error != NULL)
@@ -146,7 +151,7 @@ logdb_bool logdb_logdb_load(logdb_log_db* handle, const char *file_path, logdb_b
         }
         handle->version = le32toh(v);
 
-        // read and set support flags
+        /* read and set support flags */
         if (fread(&v, sizeof(v), 1, handle->file) != 1)
         {
             if (error != NULL)
@@ -155,7 +160,7 @@ logdb_bool logdb_logdb_load(logdb_log_db* handle, const char *file_path, logdb_b
         }
         handle->support_flags = le32toh(v);
 
-        // read hashlen
+        /* read hashlen */
         if (fread(&handle->hashlen, 1, 1, handle->file) != 1)
         {
             if (error != NULL)
@@ -164,17 +169,16 @@ logdb_bool logdb_logdb_load(logdb_log_db* handle, const char *file_path, logdb_b
         }
     }
 
-    logdb_logdb_record *rec = logdb_logdb_record_new();
-
-    enum logdb_logdb_error record_error;
+    rec = logdb_logdb_record_new();
     while (logdb_logdb_record_deser_from_file(rec, handle, &record_error))
     {
         if (record_error != LOGDB_SUCCESS)
             break;
 
-        // if a memory mapping function was provided,
-        // pass the record together with the context to
-        // this function.
+        /* if a memory mapping function was provided,
+           pass the record together with the context to
+           this function.
+         */
         if (handle->mem_map_cb != NULL)
             handle->mem_map_cb(handle->cb_ctx, rec);
     }
@@ -191,12 +195,14 @@ logdb_bool logdb_logdb_load(logdb_log_db* handle, const char *file_path, logdb_b
 
 logdb_bool logdb_logdb_flush(logdb_log_db* db)
 {
+    logdb_logdb_record *flush_rec;
+
     if (!db->file)
         return false;
 
-    logdb_logdb_record *flush_rec = db->cache_head;
+    flush_rec = db->cache_head;
 
-    //search deepest non written record
+    /* search deepest non written record */
     while (flush_rec != NULL)
     {
         if (flush_rec->written == true)
@@ -211,7 +217,7 @@ logdb_bool logdb_logdb_flush(logdb_log_db* db)
             break;
     }
 
-    //write records
+    /* write records */
     while (flush_rec != NULL)
     {
         logdb_logdb_write_record(db, flush_rec);
@@ -219,8 +225,9 @@ logdb_bool logdb_logdb_flush(logdb_log_db* db)
         flush_rec = flush_rec->next;
     }
 
-    //reset cache list
-    //no need to longer cache the written records
+    /*reset cache list
+      no need to longer cache the written records
+    */
     logdb_logdb_free_cachelist(db);
 
     return true;
@@ -231,30 +238,33 @@ void logdb_logdb_delete(logdb_log_db* db, struct buffer *key)
     if (key == NULL)
         return;
 
-    // A NULL value will result in a delete-mode record
+    /* A NULL value will result in a delete-mode record */
     logdb_logdb_append(db, key, NULL);
 }
 
 void logdb_logdb_append(logdb_log_db* db, struct buffer *key, struct buffer *val)
 {
+    logdb_logdb_record *rec;
+    logdb_logdb_record *current_head;
+
     if (key == NULL)
         return;
     
-    logdb_logdb_record *rec = logdb_logdb_record_new();
+    rec = logdb_logdb_record_new();
     logdb_logdb_record_set(rec, key, val);
-    logdb_logdb_record *current_head = db->cache_head;
+    current_head = db->cache_head;
 
-    // if the list is NOT empty, link the current head
+    /* if the list is NOT empty, link the current head */
     if (current_head != NULL)
         current_head->next = rec;
 
-    //link to previous element
+    /* link to previous element */
     rec->prev = current_head;
 
-    //set the current head
+    /* set the current head */
     db->cache_head = rec;
 
-    //update mem mapped database
+    /* update mem mapped database */
     if (db->mem_map_cb)
         db->mem_map_cb(db->cb_ctx, rec);
     else
@@ -276,35 +286,35 @@ size_t logdb_logdb_cache_size(logdb_log_db* db)
 void logdb_logdb_write_record(logdb_log_db* db, logdb_logdb_record *rec)
 {
     SHA256_CTX ctx = db->hashctx;
+    SHA256_CTX ctx_final;
+    uint8_t hash[SHA256_DIGEST_LENGTH];
 
-    //serialize record to buffer
+    /* serialize record to buffer */
     cstring *serbuf = cstr_new_sz(1024);
     logdb_logdb_record_ser(rec, serbuf);
 
-    //create hash of the body
-    uint8_t hash_rec[SHA256_DIGEST_LENGTH];
-    sha256_Raw((const uint8_t*)serbuf->str, serbuf->len, hash_rec);
+    /* create hash of the body */
+    sha256_Raw((const uint8_t*)serbuf->str, serbuf->len, hash);
 
-    //write record header
+    /* write record header */
     assert(fwrite(record_magic, 4, 1, db->file) == 1);
     sha256_Update(&ctx, record_magic, 4);
 
-    //write partial hash as body checksum&indicator (body start)
-    assert(fwrite(hash_rec, db->hashlen, 1, db->file) == 1);
-    sha256_Update(&ctx, hash_rec, db->hashlen);
+    /* write partial hash as body checksum&indicator (body start) */
+    assert(fwrite(hash, db->hashlen, 1, db->file) == 1);
+    sha256_Update(&ctx, hash, db->hashlen);
 
-    //write the body
+    /* write the body */
     fwrite(serbuf->str, serbuf->len, 1, db->file);
     sha256_Update(&ctx, (uint8_t *)serbuf->str, serbuf->len);
 
-    //write partial hash as body checksum&indicator (body end)
-    assert(fwrite(hash_rec, db->hashlen, 1, db->file) == 1);
-    sha256_Update(&ctx, hash_rec, db->hashlen);
+    /* write partial hash as body checksum&indicator (body end) */
+    assert(fwrite(hash, db->hashlen, 1, db->file) == 1);
+    sha256_Update(&ctx, hash, db->hashlen);
     
     cstr_free(serbuf, true);
 
-    SHA256_CTX ctx_final = ctx;
-    uint8_t hash[SHA256_DIGEST_LENGTH];
+    ctx_final = ctx;
     sha256_Final(hash, &ctx_final);
     assert(fwrite(hash, db->hashlen, 1, db->file) == 1);
     db->hashctx = ctx;
@@ -313,22 +323,27 @@ void logdb_logdb_write_record(logdb_log_db* db, logdb_logdb_record *rec)
 logdb_bool logdb_logdb_record_deser_from_file(logdb_logdb_record* rec, logdb_log_db *db, enum logdb_logdb_error *error)
 {
     uint32_t len = 0;
+    SHA256_CTX ctx = db->hashctx; /* prepare a copy of context that allows rollback */
+    SHA256_CTX ctx_final;
+    uint8_t magic_buf[4];
+    uint8_t hashcheck[SHA256_DIGEST_LENGTH];
+    unsigned char check[SHA256_DIGEST_LENGTH];
+
+    /* prepate a buffer for the varint data (max 4 bytes) */
+    size_t buflen = sizeof(uint32_t);
+    uint8_t readbuf[sizeof(uint32_t)];
 
     *error = LOGDB_SUCCESS;
-    //prepare a copy of context that allows rollback
-    SHA256_CTX ctx = db->hashctx;
 
-    //read record magic
-    uint8_t magic_buf[4];
+    /* read record magic */
     if (fread(magic_buf, 4, 1, db->file) != 1)
     {
-        // very likely end of file reached
+        /* very likely end of file reached */
         return false;
     }
     sha256_Update(&ctx, magic_buf, 4);
 
-    //read start hash/magic per record
-    uint8_t hashcheck[db->hashlen];
+    /* read start hash/magic per record */
     if (fread(hashcheck, db->hashlen, 1, db->file) != 1)
     {
         *error = LOGDB_ERROR_DATASTREAM_ERROR;
@@ -336,7 +351,7 @@ logdb_bool logdb_logdb_record_deser_from_file(logdb_logdb_record* rec, logdb_log
     }
     sha256_Update(&ctx, hashcheck, db->hashlen);
 
-    //read record mode (write / delete)
+    /* read record mode (write / delete) */
     if (fread(&rec->mode, 1, 1, db->file) != 1)
     {
         *error = LOGDB_ERROR_DATASTREAM_ERROR;
@@ -345,11 +360,7 @@ logdb_bool logdb_logdb_record_deser_from_file(logdb_logdb_record* rec, logdb_log
 
     sha256_Update(&ctx, (const uint8_t *)&rec->mode, 1);
 
-    //prepate a buffer for the varint data (max 4 bytes)
-    size_t buflen = sizeof(uint32_t);
-    uint8_t readbuf[buflen];
-
-    //key
+    /* key */
     if (!deser_varlen_file(&len, db->file, readbuf, &buflen))
     {
         *error = LOGDB_ERROR_DATASTREAM_ERROR;
@@ -369,7 +380,7 @@ logdb_bool logdb_logdb_record_deser_from_file(logdb_logdb_record* rec, logdb_log
 
     if (rec->mode == RECORD_TYPE_WRITE)
     {
-        //read value (not for delete mode)
+        /* read value (not for delete mode) */
         buflen = sizeof(uint32_t);
         if (!deser_varlen_file(&len, db->file, readbuf, &buflen))
         {
@@ -389,39 +400,37 @@ logdb_bool logdb_logdb_record_deser_from_file(logdb_logdb_record* rec, logdb_log
         sha256_Update(&ctx, (const uint8_t *)rec->value->str, len);
     }
 
-    //read start hash/magic per record
+    /* read start hash/magic per record */
     if (fread(hashcheck, db->hashlen, 1, db->file) != 1)
     {
-        // very likely end of file reached
+        /* very likely end of file reached */
         *error = LOGDB_ERROR_DATASTREAM_ERROR;
         return false;
     }
     sha256_Update(&ctx, hashcheck, db->hashlen);
 
-    //generate final checksum in a context copy
-    SHA256_CTX ctx_final = ctx;
-    uint8_t hash[SHA256_DIGEST_LENGTH];
-    sha256_Final(hash, &ctx_final);
+    /* generate final checksum in a context copy */
+    ctx_final = ctx;
+    sha256_Final(hashcheck, &ctx_final);
 
-    //read checksum from file, compare
-    unsigned char check[db->hashlen];
+    /* read checksum from file, compare */
     if (fread(check, 1, db->hashlen, db->file) != db->hashlen)
     {
         *error = LOGDB_ERROR_DATASTREAM_ERROR;
         return false;
     }
 
-    if (memcmp(hash,check,(size_t)db->hashlen) != 0)
+    if (memcmp(hashcheck,check,(size_t)db->hashlen) != 0)
     {
         *error = LOGDB_ERROR_CHECKSUM;
         return false;
     }
 
-    //mark record as written because we have
-    //just loaded it from disk
+    /* mark record as written because we have
+      just loaded it from disk */
     rec->written = true;
 
-    //update sha256 context
+    /* update sha256 context */
     db->hashctx = ctx;
     return true;
 }

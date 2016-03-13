@@ -412,13 +412,14 @@ static const struct sha_hmac_test_v sha_hmac_test_vectors[] =
 
 void test_sha_256()
 {
+    SHA256_CTX context;
     uint8_t buf[SHA256_DIGEST_LENGTH];
     uint8_t* digest_out; /* use non thread save buffer (optimized for embedded systems) */
     int oLen;
+    unsigned char msg_buf[20480];
 
     unsigned int i;
     for (i = 0; i < (sizeof(nist_sha256_test_vectors_short) / sizeof(nist_sha256_test_vectors_short[0])); i++) {
-        unsigned char msg_buf[nist_sha256_test_vectors_short[i].len / 8];
         utils_hex_to_bin((char*)nist_sha256_test_vectors_short[i].msg, msg_buf, nist_sha256_test_vectors_short[i].len / 8 * 2, &oLen);
         sha256_Raw(msg_buf, oLen, buf);
         digest_out = utils_hex_to_uint8((const char*)nist_sha256_test_vectors_short[i].digest_hex);
@@ -426,10 +427,8 @@ void test_sha_256()
     }
 
     for (i = 0; i < (sizeof(nist_sha256_test_vectors_long) / sizeof(nist_sha256_test_vectors_long[0])); i++) {
-        unsigned char msg_buf[nist_sha256_test_vectors_long[i].len / 8];
         utils_hex_to_bin((char*)nist_sha256_test_vectors_long[i].msg, msg_buf, nist_sha256_test_vectors_long[i].len / 8 * 2, &oLen);
 
-        SHA256_CTX context;
         sha256_Init(&context);
         if (oLen == 3680 / 8) {
             int j;
@@ -447,13 +446,14 @@ void test_sha_256()
 
 void test_sha_512()
 {
+    SHA512_CTX context;
     uint8_t buf[SHA512_DIGEST_LENGTH];
     uint8_t* digest_out; /* use non thread save buffer (optimized for embedded systems) */
     int oLen;
+    unsigned char msg_buf[20480];
 
     unsigned int i;
     for (i = 0; i < (sizeof(nist_sha512_test_vectors_short) / sizeof(nist_sha512_test_vectors_short[0])); i++) {
-        unsigned char msg_buf[nist_sha512_test_vectors_short[i].len / 8];
         utils_hex_to_bin((char*)nist_sha512_test_vectors_short[i].msg, msg_buf, nist_sha512_test_vectors_short[i].len / 8 * 2, &oLen);
         sha512_Raw(msg_buf, oLen, buf);
         digest_out = utils_hex_to_uint8((const char*)nist_sha512_test_vectors_short[i].digest_hex);
@@ -461,10 +461,8 @@ void test_sha_512()
     }
 
     for (i = 0; i < (sizeof(nist_sha512_test_vectors_long) / sizeof(nist_sha512_test_vectors_long[0])); i++) {
-        unsigned char msg_buf[nist_sha512_test_vectors_long[i].len / 8];
         utils_hex_to_bin((char*)nist_sha512_test_vectors_long[i].msg, msg_buf, nist_sha512_test_vectors_long[i].len / 8 * 2, &oLen);
 
-        SHA512_CTX context;
         sha512_Init(&context);
 
         if (oLen == 12800) {

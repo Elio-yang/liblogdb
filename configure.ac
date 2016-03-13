@@ -10,7 +10,6 @@ AH_TOP([#ifndef LIBLOGDB_CONFIG_H])
 AH_TOP([#define LIBLOGDB_CONFIG_H])
 AH_BOTTOM([#endif /*LIBLOGDB_CONFIG_H*/])
 AM_INIT_AUTOMAKE([no-define subdir-objects foreign])
-AC_HEADER_STDBOOL
 LT_INIT
 
 PKG_PROG_PKG_CONFIG
@@ -18,11 +17,14 @@ AC_PATH_TOOL(AR, ar)
 AC_PATH_TOOL(RANLIB, ranlib)
 AC_PATH_TOOL(STRIP, strip)
 AM_PROG_CC_C_O
-AC_PROG_CC_C99
+AC_PROG_CC_C89
+if test x"$ac_cv_prog_cc_c89" = x"no"; then
+AC_MSG_ERROR([c89 compiler support required])
+fi
 
 CFLAGS="$CFLAGS -W"
 
-warn_CFLAGS="-std=gnu99 -pedantic -Wno-unused-function -Wno-long-long -Wno-overlength-strings -Wno-pointer-arith"
+warn_CFLAGS="-pedantic -Wall -Wextra -Wno-unused-function -Wno-long-long -Wno-overlength-strings -Wno-pointer-arith"
 saved_CFLAGS="$CFLAGS"
 CFLAGS="$CFLAGS $warn_CFLAGS"
 AC_MSG_CHECKING([if ${CC} supports ${warn_CFLAGS}])

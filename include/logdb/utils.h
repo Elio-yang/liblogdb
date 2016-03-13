@@ -32,6 +32,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include <logdb/logdb.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -41,16 +43,17 @@ extern "C" {
 
 #define strlens(s) (s == NULL ? 0 : strlen(s))
 
+LIBLOGDB_API void utils_clear_buffers(void);
+LIBLOGDB_API void utils_hex_to_bin(const char* str, unsigned char* out, int inLen, int* outLen);
+LIBLOGDB_API void utils_bin_to_hex(unsigned char* bin_in, size_t inlen, char* hex_out);
+LIBLOGDB_API uint8_t* utils_hex_to_uint8(const char* str);
+LIBLOGDB_API char* utils_uint8_to_hex(const uint8_t* bin, size_t l);
+LIBLOGDB_API void utils_reverse_hex(char* h, int len);
 
-void utils_clear_buffers(void);
-void utils_hex_to_bin(const char* str, unsigned char* out, int inLen, int* outLen);
-void utils_bin_to_hex(unsigned char* bin_in, size_t inlen, char* hex_out);
-uint8_t* utils_hex_to_uint8(const char* str);
-char* utils_uint8_to_hex(const uint8_t* bin, size_t l);
-void utils_reverse_hex(char* h, int len);
+LIBLOGDB_API void * safe_malloc(size_t size);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif //LIBBTC_UTILS_H__
+#endif /* LIBBTC_UTILS_H__*/

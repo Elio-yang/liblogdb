@@ -49,14 +49,13 @@ enum logdb_logdb_record_type {
 typedef struct logdb_logdb_record {
     cstring* key;
     cstring* value;
-    struct logdb_logdb_record* next; //linked list -> next node (NULL if end)
-    struct logdb_logdb_record* prev; //linked list -> prev node (NULL if end)
-    int written; //! 0 = not written to databse, 1 = written
-    uint8_t mode; // record mode, 0 = WRITE, 1 = ERASE
+    struct logdb_logdb_record* next; /* linked list -> next node (NULL if end) */
+    struct logdb_logdb_record* prev; /* linked list -> prev node (NULL if end) */
+    int written; /* 0 = not written to databse, 1 = written */
+    uint8_t mode; /* record mode, 0 = WRITE, 1 = ERASE */
 } logdb_logdb_record;
 
-/////////// RECORD HANDLING
-//////////////////////////////////
+/* RECORD HANDLING  */
 /** creates new logdb key/value record */
 LIBLOGDB_API logdb_logdb_record* logdb_logdb_record_new();
 
@@ -85,4 +84,4 @@ LIBLOGDB_API logdb_logdb_record* logdb_logdb_record_rm_desc(logdb_logdb_record *
 }
 #endif
 
-#endif //__LIBLOGDB_LOGDB_REC_H__
+#endif /* __LIBLOGDB_LOGDB_REC_H__ */

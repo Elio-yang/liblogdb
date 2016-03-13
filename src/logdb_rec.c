@@ -87,7 +87,7 @@ void logdb_logdb_record_ser(logdb_logdb_record* rec, cstring *buf)
     ser_varlen(buf, rec->key->len);
     ser_bytes(buf, rec->key->str, rec->key->len);
 
-    //write value for a WRITE operation
+    /* write value for a WRITE operation */
     if (rec->mode == RECORD_TYPE_WRITE)
     {
         ser_varlen(buf, rec->value->len);
@@ -113,19 +113,22 @@ size_t logdb_logdb_record_height(logdb_logdb_record* head)
 cstring * logdb_logdb_record_find_desc(logdb_logdb_record* head, struct buffer *key)
 {
     cstring *found_value = NULL;
+    cstring *keycstr;
+    logdb_logdb_record *rec;
+
     if (key == NULL)
         return NULL;
 
-    cstring *keycstr = cstr_new_buf(key->p, key->len);
-    logdb_logdb_record *rec = head;
+    keycstr = cstr_new_buf(key->p, key->len);
+    rec = head;
     while (rec)
     {
         if (cstr_equal(rec->key, keycstr))
         {
-            //found
+            /* found */
             found_value = rec->value;
 
-            //found, but deleted
+            /* found, but deleted */
             if (rec->mode == RECORD_TYPE_ERASE)
                 found_value = NULL;
 
@@ -139,7 +142,7 @@ cstring * logdb_logdb_record_find_desc(logdb_logdb_record* head, struct buffer *
 
 logdb_logdb_record * logdb_logdb_record_rm_desc(logdb_logdb_record *usehead, cstring *key)
 {
-    //remove old records with same key
+    /* remove old records with same key */
     logdb_logdb_record *rec_loop = usehead;
     logdb_logdb_record *rec_head = usehead;
     while (rec_loop)
@@ -147,14 +150,14 @@ logdb_logdb_record * logdb_logdb_record_rm_desc(logdb_logdb_record *usehead, cst
         logdb_logdb_record *prev_rec = rec_loop->prev;
         if (cstr_equal(rec_loop->key, key))
         {
-            //remove from linked list
+            /* remove from linked list */
             if (rec_loop->prev)
                 rec_loop->prev->next = rec_loop->next;
 
             if (rec_loop->next && rec_loop->next->prev)
                 rec_loop->next->prev = rec_loop->prev;
 
-            //if we are going to delete the head, report new head
+            /* if we are going to delete the head, report new head */
             if (rec_loop == usehead)
                 rec_head = rec_loop->prev;
 

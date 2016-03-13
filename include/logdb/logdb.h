@@ -30,7 +30,7 @@
 #ifndef __LIBLOGDB_H__
 #define __LIBLOGDB_H__
 
-typedef uint8_t logdb_bool; //!serialize, c/c++ save bool
+typedef uint8_t logdb_bool; /*!serialize, c/c++ save bool*/
 
 #ifndef true
 #define true 1
@@ -39,6 +39,10 @@ typedef uint8_t logdb_bool; //!serialize, c/c++ save bool
 #ifndef false
 #define false 0
 #endif
+
+#ifndef NULL
+#define NULL 0
+#endif 
 
 #ifdef __cplusplus
 extern "C" {
@@ -62,4 +66,4 @@ extern "C" {
 }
 #endif
 
-#endif //__LIBLOGDB_H__
+#endif /* __LIBLOGDB_H__ */

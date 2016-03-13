@@ -46,9 +46,9 @@ void utils_clear_buffers(void)
 void utils_hex_to_bin(const char* str, unsigned char* out, int inLen, int* outLen)
 {
     int bLen = inLen / 2;
-    memset(out, 0, bLen);
     uint8_t c;
     int i;
+    memset(out, 0, bLen);
     for (i = 0; i < bLen; i++) {
         c = 0;
         if (str[i * 2] >= '0' && str[i * 2] <= '9') {
@@ -76,12 +76,12 @@ void utils_hex_to_bin(const char* str, unsigned char* out, int inLen, int* outLe
 
 uint8_t* utils_hex_to_uint8(const char* str)
 {
+    uint8_t c;
+    size_t i;
     if (strlens(str) > TO_UINT8_HEX_BUF_LEN) {
         return NULL;
     }
     memset(buffer_hex_to_uint8, 0, TO_UINT8_HEX_BUF_LEN);
-    uint8_t c;
-    size_t i;
     for (i = 0; i < strlens(str) / 2; i++) {
         c = 0;
         if (str[i * 2] >= '0' && str[i * 2] <= '9') {
@@ -122,12 +122,12 @@ void utils_bin_to_hex(unsigned char* bin_in, size_t inlen, char* hex_out)
 
 char* utils_uint8_to_hex(const uint8_t* bin, size_t l)
 {
+    static char digits[] = "0123456789abcdef";
+    size_t i;
     if (l > (TO_UINT8_HEX_BUF_LEN / 2 - 1)) {
         return NULL;
     }
-    static char digits[] = "0123456789abcdef";
     memset(buffer_uint8_to_hex, 0, TO_UINT8_HEX_BUF_LEN);
-    size_t i;
     for (i = 0; i < l; i++) {
         buffer_uint8_to_hex[i * 2] = digits[(bin[i] >> 4) & 0xF];
         buffer_uint8_to_hex[i * 2 + 1] = digits[bin[i] & 0xF];
@@ -136,14 +136,27 @@ char* utils_uint8_to_hex(const uint8_t* bin, size_t l)
     return buffer_uint8_to_hex;
 }
 
-
 void utils_reverse_hex(char* h, int len)
 {
-    char copy[len];
-    strncpy(copy, h, len);
+    char *copy = safe_malloc(len);
     int i;
+    strncpy(copy, h, len);
     for (i = 0; i < len; i += 2) {
         h[i] = copy[len - i - 2];
         h[i + 1] = copy[len - i - 1];
+    }
+    free(copy);
+}
+
+void * safe_malloc(size_t size) {
+    void * result;
+
+    if ( (result = malloc(size)) ) { /* assignment intentional */
+        return(result);
+    } else {
+        printf("memory overflow: malloc failed in safe_malloc.");
+        printf("  Exiting Program.\n");
+        exit(-1);
+        return(0);
     }
 }

@@ -9,17 +9,20 @@
 
 static int cstr_alloc_min_sz(cstring* s, size_t sz)
 {
-    sz++; // NUL overhead
+    unsigned int shift;
+    unsigned int al_sz;
+    char* new_s;
+
+    sz++; /* NULL overhead */
 
     if (s->alloc && (s->alloc >= sz))
         return 1;
 
-    unsigned int shift = 3;
-    unsigned int al_sz;
+    shift = 3;
     while ((al_sz = (1 << shift)) < sz)
         shift++;
 
-    char* new_s = realloc(s->str, al_sz);
+    new_s = realloc(s->str, al_sz);
     if (!new_s)
         return 0;
 
@@ -59,10 +62,12 @@ cstring* cstr_new_buf(const void* buf, size_t sz)
 
 cstring* cstr_new(const char* init_str)
 {
+    size_t slen;
+
     if (!init_str || !*init_str)
         return cstr_new_sz(0);
 
-    size_t slen = strlen(init_str);
+    slen = strlen(init_str);
     return cstr_new_buf(init_str, slen);
 }
 
@@ -80,22 +85,22 @@ void cstr_free(cstring* s, int free_buf)
 
 int cstr_resize(cstring* s, size_t new_sz)
 {
-    // no change
+    /* no change */
     if (new_sz == s->len)
         return 1;
 
-    // truncate string
+    /* truncate string */
     if (new_sz <= s->len) {
         s->len = new_sz;
         s->str[s->len] = 0;
         return 1;
     }
 
-    // increase string size
+    /* increase string size */
     if (!cstr_alloc_min_sz(s, new_sz))
         return 0;
 
-    // contents of string tail undefined
+    /* contents of string tail undefined */
 
     s->len = new_sz;
     s->str[s->len] = 0;
@@ -120,6 +125,13 @@ int cstr_append_cstr(cstring* s, cstring *append)
     return cstr_append_buf(s, append->str, append->len);
 }
 
+
+int cstr_append_c(cstring* s, char ch)
+{
+    return cstr_append_buf(s, &ch, 1);
+}
+
+
 int cstr_equal(const cstring* a, const cstring* b)
 {
     if (a == b)
@@ -133,12 +145,14 @@ int cstr_equal(const cstring* a, const cstring* b)
 
 int cstr_erase(cstring* s, size_t pos, ssize_t len)
 {
+    ssize_t old_tail;
+
     if (pos == s->len && len == 0)
         return 1;
     if (pos >= s->len)
         return 0;
 
-    ssize_t old_tail = s->len - pos;
+    old_tail = s->len - pos;
     if ((len >= 0) && (len > old_tail))
         return 0;
 

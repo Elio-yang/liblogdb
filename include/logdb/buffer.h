@@ -56,4 +56,4 @@ LIBLOGDB_API struct buffer* buffer_copy(const void* data, size_t data_len);
 }
 #endif
 
-#endif //__LIBLOGDB_BUFFER_H__
+#endif /* __LIBLOGDB_BUFFER_H__ */

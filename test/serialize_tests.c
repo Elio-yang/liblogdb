@@ -15,7 +15,22 @@
 
 void test_serialize()
 {
+    cstring* s3 = cstr_new("foo");
     cstring* s2 = cstr_new_sz(200);
+    struct const_buffer buf2;
+    uint16_t num0;
+    uint32_t num1;
+    uint64_t num2;
+    uint32_t num3;
+    char strbuf[255];
+    cstring* deser_test;
+    struct const_buffer buf3;
+    uint16_t u16;
+    uint32_t u32;
+    uint64_t u64;
+    int32_t i32;
+
+
     ser_u16(s2, 0xAAFF);
     ser_u32(s2, 0xDDBBAAFF);
     ser_u64(s2, 0x99FF99FFDDBBAAFF);
@@ -23,22 +38,19 @@ void test_serialize()
     ser_varlen(s2, 1000);
     ser_varlen(s2, 100000000);
     ser_str(s2, "test", 4);
-    cstring* s3 = cstr_new("foo");
+
     ser_varstr(s2, s3);
     cstr_free(s3, true);
-    // ser_varlen(s2, (uint64_t)0x9999999999999999); // uint64 varlen is not supported right now
 
-    struct const_buffer buf2 = {s2->str, s2->len};
-    uint16_t num0;
+    buf2.p = s2->str; buf2.len = s2->len;
     deser_u16(&num0, &buf2);
-    assert(num0 == 43775); //0xAAFF
-    uint32_t num1;
+    assert(num0 == 43775); /* 0xAAFF */
     deser_u32(&num1, &buf2);
-    assert(num1 == 3720063743); //0xDDBBAAFF
-    uint64_t num2;
+    assert(num1 == 3720063743); /* 0xDDBBAAFF */
+
     deser_u64(&num2, &buf2);
-    assert(num2 == 0x99FF99FFDDBBAAFF); //0x99FF99FFDDBBAAFF
-    uint32_t num3;
+    assert(num2 == 0x99FF99FFDDBBAAFF); /* 0x99FF99FFDDBBAAFF */
+
     deser_varlen(&num3, &buf2);
     assert(num3 == 10);
     deser_varlen(&num3, &buf2);
@@ -47,11 +59,10 @@ void test_serialize()
     assert(num3 == 100000000);
 
 
-    char strbuf[255];
+
     deser_str(strbuf, &buf2, 255);
     assert(strncmp(strbuf, "test", 4) == 0);
-
-    cstring* deser_test = cstr_new_sz(0);
+    deser_test = cstr_new_sz(0);
     deser_varstr(&deser_test, &buf2);
     assert(strncmp(deser_test->str, "foo", 3) == 0);
 
@@ -59,11 +70,7 @@ void test_serialize()
 
     cstr_free(s2, true);
 
-    struct const_buffer buf3 = {NULL, 0};
-    uint16_t u16;
-    uint32_t u32;
-    uint64_t u64;
-    int32_t i32;
+    buf3.p = NULL, buf3.len = 0;
 
     assert(deser_u16(&u16, &buf3) == false);
     assert(deser_u32(&u32, &buf3) == false);
@@ -71,3 +78,4 @@ void test_serialize()
     assert(deser_i32(&i32, &buf3) == false);
 
 }
+

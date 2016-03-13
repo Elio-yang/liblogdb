@@ -76,4 +76,4 @@ LIBLOGDB_API void hmac_sha512(const uint8_t* key, const uint32_t keylen, const u
 }
 #endif
 
-#endif //__LOGDB_SHA2_H__
+#endif /* __LOGDB_SHA2_H__ */
