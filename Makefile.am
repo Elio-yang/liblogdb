@@ -43,6 +43,7 @@ tests_SOURCES = \
 	test/buffer_tests.c \
 	test/utils_tests.c \
 	test/serialize_tests.c \
+    test/logdb_tests_sample.h \
     test/logdb_tests.c
 
 tests_CFLAGS = -I$(top_srcdir)/include
