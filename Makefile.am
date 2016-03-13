@@ -28,7 +28,8 @@ liblogdb_la_SOURCES = \
 	src/serialize.c \
     src/logdb_file.c \
     src/logdb_memdb.c \
-    src/logdb_rec.c
+    src/logdb_rec.c \
+    src/red_black_tree.c
 
 liblogdb_la_CFLAGS = -I$(top_srcdir)/include
 
@@ -44,7 +45,8 @@ tests_SOURCES = \
 	test/utils_tests.c \
 	test/serialize_tests.c \
     test/logdb_tests_sample.h \
-    test/logdb_tests.c
+    test/logdb_tests.c \
+    test/tests_red_black_tree.c
 
 tests_CFLAGS = -I$(top_srcdir)/include
 tests_CPPFLAGS = -I$(top_srcdir)/src

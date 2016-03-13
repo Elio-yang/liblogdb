@@ -22,6 +22,7 @@ extern void test_cstr();
 extern void test_buffer();
 extern void test_utils();
 extern void test_serialize();
+extern void test_red_black_tree();
 extern void test_logdb();
 
 int U_TESTS_RUN = 0;
@@ -36,6 +37,7 @@ int main()
     u_run_test(test_cstr);
     u_run_test(test_buffer);
     u_run_test(test_serialize);
+    u_run_test(test_red_black_tree);
     u_run_test(test_logdb);
     return 0;
 }

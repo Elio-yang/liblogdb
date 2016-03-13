@@ -18,6 +18,7 @@ static const char hex2[] = "AA969cdfFFffFF3bad960b0b000aca2ac329deea5c2328ebc6f2
 
 void test_utils()
 {
+
     int outlen = 0;
     unsigned char data[] = {0x00, 0xFF, 0x00, 0xAA, 0x00, 0xFF, 0x00, 0xAA};
     char hash[] = "28969cdfa74a12c82f3bad960b0b000aca2ac329deea5c2328ebc6f2ba9802c1";
@@ -27,6 +28,8 @@ void test_utils()
     char* new = utils_uint8_to_hex(hash_bin, 32);
     unsigned char data3[64];
     assert(strncmp(new, hash, 64) == 0);
+
+    utils_clear_buffers();
 
     utils_bin_to_hex(data, sizeof(data), hex);
     assert(strcmp(hex, "00ff00aa00ff00aa") == 0);
@@ -39,4 +42,5 @@ void test_utils()
     /* test upper and lowercase A / F */
     utils_hex_to_bin(hex2, data3, strlen(hex2), &outlen);
     hash_bin = utils_hex_to_uint8(hex2);
+    utils_clear_buffers();
 }
