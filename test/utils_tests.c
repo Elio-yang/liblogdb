@@ -33,7 +33,8 @@ void test_utils()
     hash_bin = utils_hex_to_uint8(hash_buffer_exc);
 
     char hex2[] = "AA969cdfFFffFF3bad960b0b000aca2ac329deea5c2328ebc6f2ba9802c1";
-    utils_hex_to_bin(hex2, data2, strlen(hex2), &outlen);
+    unsigned char data3[strlen(hex2)];
+    utils_hex_to_bin(hex2, data3, strlen(hex2), &outlen);
 
-    utils_hex_to_uint8(hex2);
+    hash_bin = utils_hex_to_uint8(hex2);
 }
