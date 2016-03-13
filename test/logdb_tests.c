@@ -21,28 +21,28 @@ static const char *dbtmpfile = "/tmp/dummy";
 void test_logdb()
 {
     unlink(dbtmpfile);
-    btc_log_db *db = btc_logdb_new();
-    u_assert_int_eq(btc_logdb_load(db, "file_that_should_not_exists.dat", false, NULL), false);
-    u_assert_int_eq(btc_logdb_load(db, dbtmpfile, true, NULL), true);
+    logdb_log_db *db = logdb_logdb_new();
+    u_assert_int_eq(logdb_logdb_load(db, "file_that_should_not_exists.dat", false, NULL), false);
+    u_assert_int_eq(logdb_logdb_load(db, dbtmpfile, true, NULL), true);
 
     struct buffer key = {"key0", 4};
     struct buffer value = {"val0", 4};
-    btc_logdb_append(db, &key, &value);
+    logdb_logdb_append(db, &key, &value);
 
     char *key1str = "ALorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
     struct buffer key1 = {key1str, strlen(key1str)};
     char *value1str = "BLorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
     struct buffer value1 = {value1str, strlen(value1str)};
-    btc_logdb_append(db, &key1, &value1);
+    logdb_logdb_append(db, &key1, &value1);
 
-    u_assert_int_eq(btc_logdb_cache_size(db), 2);
-    cstring *outtest = btc_logdb_find_cache(db, &key1);
+    u_assert_int_eq(logdb_logdb_cache_size(db), 2);
+    cstring *outtest = logdb_logdb_find_cache(db, &key1);
     u_assert_int_eq(strcmp(outtest->str, value1str),0);
-    btc_logdb_flush(db);
-    btc_logdb_free(db);
+    logdb_logdb_flush(db);
+    logdb_logdb_free(db);
 
-    db = btc_logdb_new();
-    u_assert_int_eq(btc_logdb_load(db, dbtmpfile, false, NULL), true);
+    db = logdb_logdb_new();
+    u_assert_int_eq(logdb_logdb_load(db, dbtmpfile, false, NULL), true);
     u_assert_int_eq(db->memdb_head->key->len, strlen(key1str));
     u_assert_int_eq(strcmp(db->memdb_head->key->str, key1str), 0);
     u_assert_int_eq(db->memdb_head->value->len, strlen(value1str));
@@ -50,23 +50,23 @@ void test_logdb()
 
     u_assert_int_eq(memcmp(db->memdb_head->prev->key->str, key.p, key.len), 0);
     u_assert_int_eq(memcmp(db->memdb_head->prev->value->str, value.p, value.len), 0);
-    btc_logdb_free(db);
+    logdb_logdb_free(db);
 
-    db = btc_logdb_new();
-    u_assert_int_eq(btc_logdb_load(db, dbtmpfile, false, NULL), true);
+    db = logdb_logdb_new();
+    u_assert_int_eq(logdb_logdb_load(db, dbtmpfile, false, NULL), true);
 
 
     unsigned char testbin[4] = {0x00, 0x10, 0x20, 0x30};
 
     struct buffer key2 = {"pkey", 4};
     struct buffer value2 = {testbin, 4};
-    btc_logdb_append(db, &key2, &value2);
-    btc_logdb_flush(db);
-    btc_logdb_free(db);
+    logdb_logdb_append(db, &key2, &value2);
+    logdb_logdb_flush(db);
+    logdb_logdb_free(db);
 
     // check if private key is available
-    db = btc_logdb_new();
-    u_assert_int_eq(btc_logdb_load(db, dbtmpfile, false, NULL), true);
+    db = logdb_logdb_new();
+    u_assert_int_eq(logdb_logdb_load(db, dbtmpfile, false, NULL), true);
     u_assert_int_eq(memcmp(db->memdb_head->key->str, key2.p, key2.len), 0);
     u_assert_int_eq(db->memdb_head->value->len, value2.len);
     u_assert_int_eq(memcmp(db->memdb_head->value->str, value2.p, value2.len), 0);
@@ -76,13 +76,13 @@ void test_logdb()
     u_assert_int_eq(memcmp(db->memdb_head->prev->prev->value->str, value.p, value.len), 0);
 
     //delete a record
-    btc_logdb_delete(db, &key2);
-    btc_logdb_flush(db);
-    btc_logdb_free(db);
+    logdb_logdb_delete(db, &key2);
+    logdb_logdb_flush(db);
+    logdb_logdb_free(db);
 
     //find and check the deleted record
-    db = btc_logdb_new();
-    u_assert_int_eq(btc_logdb_load(db, dbtmpfile, false, NULL), true);
+    db = logdb_logdb_new();
+    u_assert_int_eq(logdb_logdb_load(db, dbtmpfile, false, NULL), true);
 
     cstring *value_test = logdb_memdb_find(db, &key);
     u_assert_int_eq(memcmp(value_test->str, value.p, value.len), 0);
@@ -92,21 +92,21 @@ void test_logdb()
 
     //overwrite a key
     struct buffer value0_new = {"dumb", 4};
-    btc_logdb_append(db, &key, &value0_new);
+    logdb_logdb_append(db, &key, &value0_new);
 
     value_test = logdb_memdb_find(db, &key);
     u_assert_int_eq(memcmp(value_test->str, value0_new.p, value0_new.len), 0);
 
-    btc_logdb_flush(db);
-    btc_logdb_free(db);
+    logdb_logdb_flush(db);
+    logdb_logdb_free(db);
 
-    db = btc_logdb_new();
-    u_assert_int_eq(btc_logdb_load(db, dbtmpfile, false, NULL), true);
+    db = logdb_logdb_new();
+    u_assert_int_eq(logdb_logdb_load(db, dbtmpfile, false, NULL), true);
     value_test = logdb_memdb_find(db, &key);
     u_assert_int_eq(memcmp(value_test->str, value0_new.p, value0_new.len), 0);
 
-    btc_logdb_flush(db);
-    btc_logdb_free(db);
+    logdb_logdb_flush(db);
+    logdb_logdb_free(db);
 
 
 
@@ -132,11 +132,11 @@ void test_logdb()
     fwrite(wrk_buf, 1, fsize, f);
     fclose(f);
 
-    db = btc_logdb_new();
-    enum btc_logdb_error error = 0;
-    u_assert_int_eq(btc_logdb_load(db, dbtmpfile, false, &error), false);
+    db = logdb_logdb_new();
+    enum logdb_logdb_error error = 0;
+    u_assert_int_eq(logdb_logdb_load(db, dbtmpfile, false, &error), false);
     u_assert_int_eq(error, LOGDB_ERROR_WRONG_FILE_FORMAT);
-    btc_logdb_free(db);
+    logdb_logdb_free(db);
 
     //----------------------------------------------------
     memcpy(wrk_buf, buf, fsize);
@@ -147,10 +147,10 @@ void test_logdb()
     fwrite(wrk_buf, 1, fsize, f);
     fclose(f);
 
-    db = btc_logdb_new();
-    u_assert_int_eq(btc_logdb_load(db, dbtmpfile, false, &error), false);
+    db = logdb_logdb_new();
+    u_assert_int_eq(logdb_logdb_load(db, dbtmpfile, false, &error), false);
     u_assert_int_eq(error, LOGDB_ERROR_CHECKSUM);
-    btc_logdb_free(db);
+    logdb_logdb_free(db);
 
     //----------------------------------------------------
     memcpy(wrk_buf, buf, fsize);
@@ -161,10 +161,10 @@ void test_logdb()
     fwrite(wrk_buf, 1, fsize, f);
     fclose(f);
 
-    db = btc_logdb_new();
-    u_assert_int_eq(btc_logdb_load(db, dbtmpfile, false, &error), false);
+    db = logdb_logdb_new();
+    u_assert_int_eq(logdb_logdb_load(db, dbtmpfile, false, &error), false);
     u_assert_int_eq(error, LOGDB_ERROR_DATASTREAM_ERROR);
-    btc_logdb_free(db);
+    logdb_logdb_free(db);
 
     free(buf);
     free(wrk_buf);
@@ -173,8 +173,8 @@ void test_logdb()
     //--- large db test
     unlink(dbtmpfile);
 
-    db = btc_logdb_new();
-    u_assert_int_eq(btc_logdb_load(db, dbtmpfile, true, NULL), true);
+    db = logdb_logdb_new();
+    u_assert_int_eq(logdb_logdb_load(db, dbtmpfile, true, NULL), true);
 
     unsigned int i;
     for (i = 0; i < (sizeof(sampledata) / sizeof(sampledata[0])); i++) {
@@ -192,7 +192,7 @@ void test_logdb()
 
         struct buffer smp_value = {txbin, outlen};
 
-        btc_logdb_append(db, &smp_key, &smp_value);
+        logdb_logdb_append(db, &smp_key, &smp_value);
     }
 
     u_assert_int_eq(logdb_memdb_size(db), (sizeof(sampledata) / sizeof(sampledata[0])));
@@ -215,12 +215,12 @@ void test_logdb()
         u_assert_int_eq(outlen, value_test1->len);
     }
 
-    btc_logdb_flush(db);
-    btc_logdb_free(db);
+    logdb_logdb_flush(db);
+    logdb_logdb_free(db);
 
-    db = btc_logdb_new();
+    db = logdb_logdb_new();
     error = 0;
-    u_assert_int_eq(btc_logdb_load(db, dbtmpfile, false, &error), true);
+    u_assert_int_eq(logdb_logdb_load(db, dbtmpfile, false, &error), true);
     u_assert_int_eq(logdb_memdb_size(db), (sizeof(sampledata) / sizeof(sampledata[0])));
 
     //check all records
@@ -266,16 +266,16 @@ void test_logdb()
         utils_hex_to_bin(tx->txhash, hashbin, strlen(tx->txhash), &outlen);
 
         struct buffer smp_key   = {hashbin, outlen};
-        btc_logdb_delete(db, &smp_key);
+        logdb_logdb_delete(db, &smp_key);
     }
     u_assert_int_eq(logdb_memdb_size(db), 0);
 
-    btc_logdb_flush(db);
-    btc_logdb_free(db);
+    logdb_logdb_flush(db);
+    logdb_logdb_free(db);
 
-    db = btc_logdb_new();
+    db = logdb_logdb_new();
     error = 0;
-    u_assert_int_eq(btc_logdb_load(db, dbtmpfile, false, &error), true);
+    u_assert_int_eq(logdb_logdb_load(db, dbtmpfile, false, &error), true);
     u_assert_int_eq(error, LOGDB_SUCCESS);
     u_assert_int_eq(logdb_memdb_size(db), 0);
 
@@ -294,24 +294,24 @@ void test_logdb()
 
         struct buffer smp_value = {txbin, outlen};
 
-        btc_logdb_append(db, &smp_key, &smp_value);
+        logdb_logdb_append(db, &smp_key, &smp_value);
     }
 
-    btc_logdb_flush(db);
-    btc_logdb_free(db);
+    logdb_logdb_flush(db);
+    logdb_logdb_free(db);
 
-    db = btc_logdb_new();
+    db = logdb_logdb_new();
     error = 0;
-    u_assert_int_eq(btc_logdb_load(db, dbtmpfile, false, &error), true);
+    u_assert_int_eq(logdb_logdb_load(db, dbtmpfile, false, &error), true);
     u_assert_int_eq(error, LOGDB_SUCCESS);
     u_assert_int_eq(logdb_memdb_size(db), (sizeof(sampledata) / sizeof(sampledata[0])));
 
-    btc_logdb_flush(db);
-    btc_logdb_free(db);
+    logdb_logdb_flush(db);
+    logdb_logdb_free(db);
 
-    db = btc_logdb_new();
+    db = logdb_logdb_new();
     error = 0;
-    u_assert_int_eq(btc_logdb_load(db, dbtmpfile, false, &error), true);
+    u_assert_int_eq(logdb_logdb_load(db, dbtmpfile, false, &error), true);
     u_assert_int_eq(error, LOGDB_SUCCESS);
     u_assert_int_eq(logdb_memdb_size(db), (sizeof(sampledata) / sizeof(sampledata[0])));
 
@@ -330,9 +330,9 @@ void test_logdb()
 
         struct buffer smp_value = {txbin, outlen};
 
-        btc_logdb_append(db, &smp_key, &smp_value);
+        logdb_logdb_append(db, &smp_key, &smp_value);
     }
 
-    btc_logdb_flush(db);
-    btc_logdb_free(db);
+    logdb_logdb_flush(db);
+    logdb_logdb_free(db);
 }

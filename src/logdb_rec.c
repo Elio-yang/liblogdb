@@ -32,9 +32,9 @@
 #include <stddef.h>
 #include <string.h>
 
-btc_logdb_record* btc_logdb_record_new()
+logdb_logdb_record* logdb_logdb_record_new()
 {
-    btc_logdb_record* record;
+    logdb_logdb_record* record;
     record = calloc(1, sizeof(*record));
     record->key = cstr_new_sz(32);
     record->value = cstr_new_sz(128);
@@ -43,7 +43,7 @@ btc_logdb_record* btc_logdb_record_new()
     return record;
 }
 
-void btc_logdb_record_free(btc_logdb_record* rec)
+void logdb_logdb_record_free(logdb_logdb_record* rec)
 {
     if (!rec)
         return;
@@ -56,7 +56,7 @@ void btc_logdb_record_free(btc_logdb_record* rec)
     free(rec);
 }
 
-void btc_logdb_record_set(btc_logdb_record* rec, struct buffer *key, struct buffer *val)
+void logdb_logdb_record_set(logdb_logdb_record* rec, struct buffer *key, struct buffer *val)
 {
     if (key == NULL)
         return;
@@ -71,9 +71,9 @@ void btc_logdb_record_set(btc_logdb_record* rec, struct buffer *key, struct buff
         rec->mode = RECORD_TYPE_ERASE;
 }
 
-btc_logdb_record* btc_logdb_record_copy(btc_logdb_record* b_rec)
+logdb_logdb_record* logdb_logdb_record_copy(logdb_logdb_record* b_rec)
 {
-    btc_logdb_record* a_rec = btc_logdb_record_new();
+    logdb_logdb_record* a_rec = logdb_logdb_record_new();
     cstr_append_cstr(a_rec->key, b_rec->key);
     cstr_append_cstr(a_rec->value, b_rec->value);
     a_rec->written = b_rec->written;
@@ -81,7 +81,7 @@ btc_logdb_record* btc_logdb_record_copy(btc_logdb_record* b_rec)
     return a_rec;
 }
 
-void btc_logdb_record_ser(btc_logdb_record* rec, cstring *buf)
+void logdb_logdb_record_ser(logdb_logdb_record* rec, cstring *buf)
 {
     ser_bytes(buf, &rec->mode, 1);
     ser_varlen(buf, rec->key->len);
@@ -95,10 +95,10 @@ void btc_logdb_record_ser(btc_logdb_record* rec, cstring *buf)
     }
 }
 
-size_t btc_logdb_record_height(btc_logdb_record* head)
+size_t logdb_logdb_record_height(logdb_logdb_record* head)
 {
     size_t cnt = 0;
-    btc_logdb_record *rec_loop = head;
+    logdb_logdb_record *rec_loop = head;
     while (rec_loop)
     {
         if (rec_loop->mode == RECORD_TYPE_WRITE)
@@ -110,14 +110,14 @@ size_t btc_logdb_record_height(btc_logdb_record* head)
     return cnt;
 }
 
-cstring * btc_logdb_record_find_desc(btc_logdb_record* head, struct buffer *key)
+cstring * logdb_logdb_record_find_desc(logdb_logdb_record* head, struct buffer *key)
 {
     cstring *found_value = NULL;
     if (key == NULL)
         return NULL;
 
     cstring *keycstr = cstr_new_buf(key->p, key->len);
-    btc_logdb_record *rec = head;
+    logdb_logdb_record *rec = head;
     while (rec)
     {
         if (cstr_equal(rec->key, keycstr))
@@ -137,14 +137,14 @@ cstring * btc_logdb_record_find_desc(btc_logdb_record* head, struct buffer *key)
     return found_value;
 }
 
-btc_logdb_record * btc_logdb_record_rm_desc(btc_logdb_record *usehead, cstring *key)
+logdb_logdb_record * logdb_logdb_record_rm_desc(logdb_logdb_record *usehead, cstring *key)
 {
     //remove old records with same key
-    btc_logdb_record *rec_loop = usehead;
-    btc_logdb_record *rec_head = usehead;
+    logdb_logdb_record *rec_loop = usehead;
+    logdb_logdb_record *rec_head = usehead;
     while (rec_loop)
     {
-        btc_logdb_record *prev_rec = rec_loop->prev;
+        logdb_logdb_record *prev_rec = rec_loop->prev;
         if (cstr_equal(rec_loop->key, key))
         {
             //remove from linked list
@@ -158,7 +158,7 @@ btc_logdb_record * btc_logdb_record_rm_desc(btc_logdb_record *usehead, cstring *
             if (rec_loop == usehead)
                 rec_head = rec_loop->prev;
 
-            btc_logdb_record_free(rec_loop);
+            logdb_logdb_record_free(rec_loop);
         }
         
         rec_loop = prev_rec;

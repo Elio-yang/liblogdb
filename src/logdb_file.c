@@ -42,9 +42,9 @@ static const unsigned char record_magic[4] = {0x88, 0x61, 0xAD, 0xFC}; //record 
 
 ////////////////////////////////////
 
-btc_log_db* btc_logdb_new()
+logdb_log_db* logdb_logdb_new()
 {
-    btc_log_db* db;
+    logdb_log_db* db;
     db = calloc(1, sizeof(*db));
     db->memdb_head = NULL;
     db->cache_head = NULL;
@@ -52,24 +52,24 @@ btc_log_db* btc_logdb_new()
     db->version = kLOGDB_DEFAULT_VERSION;
     db->support_flags = 0; //reserved for future changes
     sha256_Init(&db->hashctx);
-    btc_logdb_set_mem_cb(db, db, logdb_memdb_append);
+    logdb_logdb_set_mem_cb(db, db, logdb_memdb_append);
     return db;
 }
 
-void btc_logdb_free_cachelist(btc_log_db* db)
+void logdb_logdb_free_cachelist(logdb_log_db* db)
 {
     // free the unwritten records list
-    btc_logdb_record *rec = db->cache_head;
+    logdb_logdb_record *rec = db->cache_head;
     while (rec)
     {
-        btc_logdb_record *prev_rec = rec->prev;
-        btc_logdb_record_free(rec);
+        logdb_logdb_record *prev_rec = rec->prev;
+        logdb_logdb_record_free(rec);
         rec = prev_rec;
     }
     db->cache_head = NULL;
 }
 
-void btc_logdb_free(btc_log_db* db)
+void logdb_logdb_free(logdb_log_db* db)
 {
     if (!db)
         return;
@@ -80,21 +80,21 @@ void btc_logdb_free(btc_log_db* db)
         db->file = NULL;
     }
 
-    btc_logdb_free_cachelist(db);
+    logdb_logdb_free_cachelist(db);
 
     // free the internal database
-    btc_logdb_record *rec = db->memdb_head;
+    logdb_logdb_record *rec = db->memdb_head;
     while (rec)
     {
-        btc_logdb_record *prev_rec = rec->prev;
-        btc_logdb_record_free(rec);
+        logdb_logdb_record *prev_rec = rec->prev;
+        logdb_logdb_record_free(rec);
         rec = prev_rec;
     }
 
     free(db);
 }
 
-void btc_logdb_set_mem_cb(btc_log_db* db, void *ctx, void (*new_cb)(void*, btc_logdb_record *))
+void logdb_logdb_set_mem_cb(logdb_log_db* db, void *ctx, void (*new_cb)(void*, logdb_logdb_record *))
 {
     // set the context passed in the callback, sender must care about lifetime of object
     db->cb_ctx = ctx;
@@ -102,7 +102,7 @@ void btc_logdb_set_mem_cb(btc_log_db* db, void *ctx, void (*new_cb)(void*, btc_l
     db->mem_map_cb = new_cb;
 }
 
-logdb_bool btc_logdb_load(btc_log_db* handle, const char *file_path, logdb_bool create, enum btc_logdb_error *error)
+logdb_bool logdb_logdb_load(logdb_log_db* handle, const char *file_path, logdb_bool create, enum logdb_logdb_error *error)
 {
     handle->file = fopen(file_path, create ? "a+b" : "r+b");
     if (handle->file == NULL)
@@ -164,10 +164,10 @@ logdb_bool btc_logdb_load(btc_log_db* handle, const char *file_path, logdb_bool 
         }
     }
 
-    btc_logdb_record *rec = btc_logdb_record_new();
+    logdb_logdb_record *rec = logdb_logdb_record_new();
 
-    enum btc_logdb_error record_error;
-    while (btc_logdb_record_deser_from_file(rec, handle, &record_error))
+    enum logdb_logdb_error record_error;
+    while (logdb_logdb_record_deser_from_file(rec, handle, &record_error))
     {
         if (record_error != LOGDB_SUCCESS)
             break;
@@ -178,7 +178,7 @@ logdb_bool btc_logdb_load(btc_log_db* handle, const char *file_path, logdb_bool 
         if (handle->mem_map_cb != NULL)
             handle->mem_map_cb(handle->cb_ctx, rec);
     }
-    btc_logdb_record_free(rec);
+    logdb_logdb_record_free(rec);
 
     if (record_error != LOGDB_SUCCESS)
     {
@@ -189,12 +189,12 @@ logdb_bool btc_logdb_load(btc_log_db* handle, const char *file_path, logdb_bool 
     return true;
 }
 
-logdb_bool btc_logdb_flush(btc_log_db* db)
+logdb_bool logdb_logdb_flush(logdb_log_db* db)
 {
     if (!db->file)
         return false;
 
-    btc_logdb_record *flush_rec = db->cache_head;
+    logdb_logdb_record *flush_rec = db->cache_head;
 
     //search deepest non written record
     while (flush_rec != NULL)
@@ -214,35 +214,35 @@ logdb_bool btc_logdb_flush(btc_log_db* db)
     //write records
     while (flush_rec != NULL)
     {
-        btc_logdb_write_record(db, flush_rec);
+        logdb_logdb_write_record(db, flush_rec);
         flush_rec->written = true;
         flush_rec = flush_rec->next;
     }
 
     //reset cache list
     //no need to longer cache the written records
-    btc_logdb_free_cachelist(db);
+    logdb_logdb_free_cachelist(db);
 
     return true;
 }
 
-void btc_logdb_delete(btc_log_db* db, struct buffer *key)
+void logdb_logdb_delete(logdb_log_db* db, struct buffer *key)
 {
     if (key == NULL)
         return;
 
     // A NULL value will result in a delete-mode record
-    btc_logdb_append(db, key, NULL);
+    logdb_logdb_append(db, key, NULL);
 }
 
-void btc_logdb_append(btc_log_db* db, struct buffer *key, struct buffer *val)
+void logdb_logdb_append(logdb_log_db* db, struct buffer *key, struct buffer *val)
 {
     if (key == NULL)
         return;
     
-    btc_logdb_record *rec = btc_logdb_record_new();
-    btc_logdb_record_set(rec, key, val);
-    btc_logdb_record *current_head = db->cache_head;
+    logdb_logdb_record *rec = logdb_logdb_record_new();
+    logdb_logdb_record_set(rec, key, val);
+    logdb_logdb_record *current_head = db->cache_head;
 
     // if the list is NOT empty, link the current head
     if (current_head != NULL)
@@ -263,23 +263,23 @@ void btc_logdb_append(btc_log_db* db, struct buffer *key, struct buffer *val)
     }
 }
 
-cstring * btc_logdb_find_cache(btc_log_db* db, struct buffer *key)
+cstring * logdb_logdb_find_cache(logdb_log_db* db, struct buffer *key)
 {
-    return btc_logdb_record_find_desc(db->cache_head, key);
+    return logdb_logdb_record_find_desc(db->cache_head, key);
 }
 
-size_t btc_logdb_cache_size(btc_log_db* db)
+size_t logdb_logdb_cache_size(logdb_log_db* db)
 {
-    return btc_logdb_record_height(db->cache_head);
+    return logdb_logdb_record_height(db->cache_head);
 }
 
-void btc_logdb_write_record(btc_log_db* db, btc_logdb_record *rec)
+void logdb_logdb_write_record(logdb_log_db* db, logdb_logdb_record *rec)
 {
     SHA256_CTX ctx = db->hashctx;
 
     //serialize record to buffer
     cstring *serbuf = cstr_new_sz(1024);
-    btc_logdb_record_ser(rec, serbuf);
+    logdb_logdb_record_ser(rec, serbuf);
 
     //create hash of the body
     uint8_t hash_rec[SHA256_DIGEST_LENGTH];
@@ -310,7 +310,7 @@ void btc_logdb_write_record(btc_log_db* db, btc_logdb_record *rec)
     db->hashctx = ctx;
 }
 
-logdb_bool btc_logdb_record_deser_from_file(btc_logdb_record* rec, btc_log_db *db, enum btc_logdb_error *error)
+logdb_bool logdb_logdb_record_deser_from_file(logdb_logdb_record* rec, logdb_log_db *db, enum logdb_logdb_error *error)
 {
     uint32_t len = 0;
 

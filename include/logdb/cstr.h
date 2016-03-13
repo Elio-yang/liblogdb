@@ -26,8 +26,8 @@
 */
 
 
-#ifndef __LIBBTC_CSTR_H__
-#define __LIBBTC_CSTR_H__
+#ifndef __LIBLOGDB_CSTR_H__
+#define __LIBLOGDB_CSTR_H__
 
 #include <logdb/logdb.h>
 
@@ -65,4 +65,4 @@ LIBLOGDB_API static inline int cstr_append_c(cstring* s, char ch)
 }
 #endif
 
-#endif //__LIBBTC_CSTR_H__
+#endif //__LIBLOGDB_CSTR_H__

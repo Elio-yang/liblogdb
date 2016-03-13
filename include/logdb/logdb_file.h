@@ -45,8 +45,8 @@
  ---- more records
 */
 
-#ifndef __LIBBTC_LOGDB_H__
-#define __LIBBTC_LOGDB_H__
+#ifndef __LIBLOGDB_LOGDB_H__
+#define __LIBLOGDB_LOGDB_H__
 
 #include <logdb/logdb.h>
 #include <logdb/logdb_rec.h>
@@ -61,7 +61,7 @@ extern "C" {
 #endif
 
 /** error types */
-enum btc_logdb_error {
+enum logdb_logdb_error {
     LOGDB_SUCCESS = 0,
     LOGDB_ERROR_UNKNOWN = 100,
     LOGDB_ERROR_FOPEN_FAILED = 200,
@@ -72,62 +72,62 @@ enum btc_logdb_error {
 };
 
 /** logdb handle */
-typedef struct btc_log_db {
+typedef struct logdb_log_db {
     FILE *file;
-    void (*mem_map_cb)(void*, btc_logdb_record *); //callback for memory mapping
+    void (*mem_map_cb)(void*, logdb_logdb_record *); //callback for memory mapping
     void *cb_ctx; //callback context
-    btc_logdb_record *memdb_head; //optional non-schematic memory database
-    btc_logdb_record *cache_head;
+    logdb_logdb_record *memdb_head; //optional non-schematic memory database
+    logdb_logdb_record *cache_head;
     SHA256_CTX hashctx;
     uint8_t hashlen;
     uint32_t version;
     uint32_t support_flags;
-} btc_log_db;
+} logdb_log_db;
 
 /////////// DB HANDLING
 //////////////////////////////////
 /** creates new logdb handle, sets default values */
-LIBLOGDB_API btc_log_db* btc_logdb_new();
+LIBLOGDB_API logdb_log_db* logdb_logdb_new();
 
 /** frees database and all in-memory records, closes file if open */
-LIBLOGDB_API void btc_logdb_free(btc_log_db* db);
+LIBLOGDB_API void logdb_logdb_free(logdb_log_db* db);
 
 /** set the callback for all memory mapping operations
     the callback will be called when a record will be loaded from disk, appended, deleted 
     this will allow to do a application specific memory mapping
  */
-LIBLOGDB_API void btc_logdb_set_mem_cb(btc_log_db* db, void *ctx, void (*new_cb)(void*, btc_logdb_record *));
+LIBLOGDB_API void logdb_logdb_set_mem_cb(logdb_log_db* db, void *ctx, void (*new_cb)(void*, logdb_logdb_record *));
 
 /** loads given file as database (memory mapping) */
-LIBLOGDB_API logdb_bool btc_logdb_load(btc_log_db* handle, const char *file_path, logdb_bool create, enum btc_logdb_error *error);
+LIBLOGDB_API logdb_bool logdb_logdb_load(logdb_log_db* handle, const char *file_path, logdb_bool create, enum logdb_logdb_error *error);
 
 /** flushes database: writes down new records */
-LIBLOGDB_API logdb_bool btc_logdb_flush(btc_log_db* db);
+LIBLOGDB_API logdb_bool logdb_logdb_flush(logdb_log_db* db);
 
 /** deletes record with key */
-LIBLOGDB_API void btc_logdb_delete(btc_log_db* db, struct buffer *key);
+LIBLOGDB_API void logdb_logdb_delete(logdb_log_db* db, struct buffer *key);
 
 /** appends record to the logdb */
-LIBLOGDB_API void btc_logdb_append(btc_log_db* db, struct buffer *key, struct buffer *value);
+LIBLOGDB_API void logdb_logdb_append(logdb_log_db* db, struct buffer *key, struct buffer *value);
 
 /** find and get value from key */
-LIBLOGDB_API cstring * btc_logdb_find_cache(btc_log_db* db, struct buffer *key);
-LIBLOGDB_API cstring * btc_logdb_find_db(btc_log_db* db, struct buffer *key);
+LIBLOGDB_API cstring * logdb_logdb_find_cache(logdb_log_db* db, struct buffer *key);
+LIBLOGDB_API cstring * logdb_logdb_find_db(logdb_log_db* db, struct buffer *key);
 
 /** get the amount of in-memory-records */
-LIBLOGDB_API size_t btc_logdb_cache_size(btc_log_db* db);
-LIBLOGDB_API size_t btc_logdb_db_size(btc_log_db* db);
+LIBLOGDB_API size_t logdb_logdb_cache_size(logdb_log_db* db);
+LIBLOGDB_API size_t logdb_logdb_db_size(logdb_log_db* db);
 
 /** writes down single record, internal */
-void btc_logdb_write_record(btc_log_db* db, btc_logdb_record *rec);
+void logdb_logdb_write_record(logdb_log_db* db, logdb_logdb_record *rec);
 
 /** deserializes next logdb record from file */
-logdb_bool btc_logdb_record_deser_from_file(btc_logdb_record* rec, btc_log_db *db, enum btc_logdb_error *error);
+logdb_bool logdb_logdb_record_deser_from_file(logdb_logdb_record* rec, logdb_log_db *db, enum logdb_logdb_error *error);
 
 /** remove records with given key (to keep memory clean) */
-logdb_bool btc_logdb_remove_existing_records(btc_logdb_record *usehead, cstring *key);
+logdb_bool logdb_logdb_remove_existing_records(logdb_logdb_record *usehead, cstring *key);
 #ifdef __cplusplus
 }
 #endif
 
-#endif //__LIBBTC_LOGDB_H__
+#endif //__LIBLOGDB_LOGDB_H__

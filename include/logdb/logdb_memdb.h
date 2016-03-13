@@ -34,8 +34,8 @@
  Logdb does currently not provide an efficient memory map
 */
 
-#ifndef __LIBBTC_LOGDB_MEMDB_H__
-#define __LIBBTC_LOGDB_MEMDB_H__
+#ifndef __LIBLOGDB_LOGDB_MEMDB_H__
+#define __LIBLOGDB_LOGDB_MEMDB_H__
 
 #include <logdb/buffer.h>
 #include <logdb/cstr.h>
@@ -50,14 +50,14 @@ extern "C" {
 #include <stddef.h>
 
 /** appends record to the mem db */
-LIBLOGDB_API void logdb_memdb_append(void* ctx, btc_logdb_record *rec);
+LIBLOGDB_API void logdb_memdb_append(void* ctx, logdb_logdb_record *rec);
 
-LIBLOGDB_API cstring * logdb_memdb_find(btc_log_db* db, struct buffer *key);
+LIBLOGDB_API cstring * logdb_memdb_find(logdb_log_db* db, struct buffer *key);
 
-LIBLOGDB_API size_t logdb_memdb_size(btc_log_db* db);
+LIBLOGDB_API size_t logdb_memdb_size(logdb_log_db* db);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif //__LIBBTC_LOGDB_MEMDB_H__
+#endif //__LIBLOGDB_LOGDB_MEMDB_H__
