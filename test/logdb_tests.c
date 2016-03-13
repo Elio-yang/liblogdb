@@ -301,6 +301,9 @@ void test_logdb()
     struct buffer value1 = {value1str, strlen(value1str)};
     btc_logdb_append(db, &key1, &value1);
 
+    u_assert_int_eq(btc_logdb_cache_size(db), 2);
+    cstring *outtest = btc_logdb_find_cache(db, &key1);
+    u_assert_int_eq(strcmp(outtest->str, value1str),0);
     btc_logdb_flush(db);
     btc_logdb_free(db);
 
