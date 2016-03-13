@@ -6,8 +6,12 @@
 
 /*  this file has functions to test a red-black tree of integers */
 
-void IntDest(void* a) {
+void free_key(void* a) {
   free((int*)a);
+}
+
+void free_value(void *a){
+   free((int*)a);
 }
 
 int IntComp(const void* a,const void* b) {
@@ -24,9 +28,7 @@ void InfoPrint(void* a) {
   ;
 }
 
-void InfoDest(void *a){
-  ;
-}
+
 
 int test_red_black_tree() {
     stk_stack* enumResult;
@@ -38,7 +40,7 @@ int test_red_black_tree() {
     rb_red_blk_node* newNode;
     rb_red_blk_tree* tree;
 
-    tree=RBTreeCreate(IntComp,IntDest,InfoDest,IntPrint,InfoPrint);
+    tree=RBTreeCreate(IntComp,free_key,free_value,IntPrint,InfoPrint);
 
 
     akey = malloc(10);
