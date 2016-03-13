@@ -11,6 +11,7 @@
 #include "utest.h"
 
 #include <unistd.h>
+#include <errno.h>
 
 struct txtest {
     char txhash[65];
@@ -182,6 +183,104 @@ static const struct txtest sampledata[] =
 { "3125b62775d46ac9ee04ea32ced67eadaa436fad9c7c894a32718dc1333e8e06","01000000018e8b1040c0e282cddc56de454d1944d9936affd436c55c3076b982406d473bda020000006a4730440220539942a9fa5ea2be749091c3b082854b054ba18e23d34d6b2b0719c34d2d50660220780cab38acc8808573e534a91fda4b48cdf910504183ff553da6f4471fdb217f012103e91b97df0999cd99fb7f293a1c9189eae9b554262ea908055ebf24f607c03aa5ffffffff0336150000000000001976a914edee861dff4de166683e4c54ae3869cd05c7ae0f88ac00000000000000001e6a1ca738ed28117d0975853866f789963128094c8cdb2c104d154501ee5490926500000000001976a91418d7d921d511ac33875b53b113435111bac6fb8688ac00000000" },
 { "5f89af45eb52b512643765d210e4d439ce2b5fbf2329ac65c39b4fa85d79e70d","01000000028e8b1040c0e282cddc56de454d1944d9936affd436c55c3076b982406d473bda000000006b483045022100c6306a14c792caefa2191c62f96b7af4e182bc9f682f407c9736d494d3af57d702203ea45299c14a20ed5381ad79916131df3d9415d25089d97e7d9eaa1fe43d5755012103024f0ed5a4022c65eaccaf1ce1c70a388cca10ec49ec4e6c33bf264dd1c6aedaffffffff626f09bc91361a1ed4370b6d82f0ab5a1678af9f48222413028f8142f65e0f61020000006a47304402203ca17e32c04307cc774c6e4ba82c9acd3a2df02502cb4ba77ccc1a9a249f01f202202c4920cbc0c85515517dd259d2d1f919169167f22c51618ed2f2cb571a6bbf68012103024f0ed5a4022c65eaccaf1ce1c70a388cca10ec49ec4e6c33bf264dd1c6aedaffffffff0336150000000000001976a914edee861dff4de166683e4c54ae3869cd05c7ae0f88ac00000000000000001e6a1ca738ed28117d0975853866f7899631290bbfc4322c104d09a94c7254f65a0400000000001976a914f7f9e2aade3600b07171f81c299c51c1d790991788ac00000000" }
 };
+
+#define MIN_CHUNK 64
+
+int
+cust_getstr (lineptr, n, stream, terminator, offset)
+char **lineptr;
+size_t *n;
+FILE *stream;
+char terminator;
+int offset;
+{
+    int nchars_avail;		/* Allocated but unused chars in *LINEPTR.  */
+    char *read_pos;		/* Where we're reading into *LINEPTR. */
+    int ret;
+
+    if (!lineptr || !n || !stream)
+    {
+        errno = EINVAL;
+        return -1;
+    }
+
+    if (!*lineptr)
+    {
+        *n = MIN_CHUNK;
+        *lineptr = malloc (*n);
+        if (!*lineptr)
+        {
+            errno = ENOMEM;
+            return -1;
+        }
+    }
+
+    nchars_avail = *n - offset;
+    read_pos = *lineptr + offset;
+
+    for (;;)
+    {
+        int save_errno;
+        register int c = getc (stream);
+
+        save_errno = errno;
+
+        /* We always want at least one char left in the buffer, since we
+         always (unless we get an error while reading the first char)
+         NUL-terminate the line buffer.  */
+
+
+        if (nchars_avail < 2)
+        {
+            if (*n > MIN_CHUNK)
+                *n *= 2;
+            else
+                *n += MIN_CHUNK;
+
+            nchars_avail = *n + *lineptr - read_pos;
+            *lineptr = realloc (*lineptr, *n);
+            if (!*lineptr)
+            {
+                errno = ENOMEM;
+                return -1;
+            }
+            read_pos = *n - nchars_avail + *lineptr;
+
+        }
+
+        if (ferror (stream))
+        {
+            /* Might like to return partial line, but there is no
+             place for us to store errno.  And we don't want to just
+             lose errno.  */
+            errno = save_errno;
+            return -1;
+        }
+
+        if (c == EOF)
+        {
+            /* Return partial line, if any.  */
+            if (read_pos == *lineptr)
+                return -1;
+            else
+                break;
+        }
+        
+        *read_pos++ = c;
+        nchars_avail--;
+        
+        if (c == terminator)
+        /* Return the line.  */
+            break;
+    }
+    
+    /* Done - NUL terminate and return the number of chars read.  */
+    *read_pos = '\0';
+    
+    ret = read_pos - (*lineptr + offset);
+    return ret;
+}
+
 
 static const char *dbtmpfile = "/tmp/dummy";
 
@@ -516,7 +615,7 @@ void test_logdb()
     char buffer[1024];
     int col = 0;
     int lines = 0;
-    while ((read = getline(&line, &len, datafp)) != -1) {
+    while ((read = cust_getstr(&line, &len, datafp, '\n', 0)) != -1) {
         col = 0;
         int in_quotes = 0;
         int start_col = -1;
