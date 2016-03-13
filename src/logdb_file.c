@@ -97,9 +97,8 @@ void logdb_logdb_free(logdb_log_db* db)
 
 void logdb_logdb_set_mem_cb(logdb_log_db* db, void *ctx, void (*new_cb)(void*, logdb_logdb_record *))
 {
-    /* set the context passed in the callback, sender must care about lifetime of object */
+    /* set the context passed in the callback, sender must take care about lifetime of object */
     db->cb_ctx = ctx;
-
     db->mem_map_cb = new_cb;
 }
 

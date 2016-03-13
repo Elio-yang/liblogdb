@@ -7,6 +7,7 @@
 #include <logdb/logdb.h>
 #include <logdb/logdb_memdb.h>
 #include <logdb/utils.h>
+#include "red_black_tree.h"
 
 #include "utest.h"
 
@@ -21,6 +22,86 @@ static const char *dbtmpfile = "/tmp/dummy";
 static const char *key1str = "ALorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
 
 static const char *value1str = "BLorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
+
+void logdb_rbtree_free_key(void* a) {
+    ;
+}
+
+void logdb_rbtree_free_value(void *a){
+    logdb_logdb_record *rec = (logdb_logdb_record *)a;
+    logdb_logdb_record_free(rec);
+}
+
+int logdb_rbtree_IntComp(const void* a,const void* b) {
+    return cstr_compare((cstring *)a, (cstring *)b);
+}
+
+void logdb_rbtree_IntPrint(const void* a) {
+    printf("%i",*(int*)a);
+}
+
+void logdb_rbtree_InfoPrint(void* a) {
+    ;
+}
+
+void logdbcallback(void *ctx, logdb_logdb_record *rec)
+{
+    rb_red_blk_tree* tree = (rb_red_blk_tree *)ctx;
+    logdb_logdb_record *rec_new = logdb_logdb_record_copy(rec);
+    RBTreeInsert(tree,rec_new->key,rec_new);
+}
+
+void test_logdb_rb_tree()
+{
+    logdb_log_db *db;
+    rb_red_blk_tree* tree;
+    unsigned int i;
+    struct buffer smp_value;
+    struct buffer smp_key;
+    uint8_t txbin[10240];
+
+    /* --- large db test */
+    unlink(dbtmpfile);
+
+    db = logdb_logdb_new();
+    u_assert_int_eq(logdb_logdb_load(db, dbtmpfile, true, NULL), true);
+
+    for (i = 0; i < (sizeof(sampledata) / sizeof(sampledata[0])); i++) {
+        const struct txtest *tx = &sampledata[i];
+
+        uint8_t hashbin[sizeof(tx->txhash) / 2];
+        int outlen = sizeof(tx->txhash) / 2;
+        utils_hex_to_bin(tx->txhash, hashbin, strlen(tx->txhash), &outlen);
+
+        smp_key.p = hashbin;
+        smp_key.len = outlen;
+
+        outlen = sizeof(tx->hextx) / 2;
+        utils_hex_to_bin(tx->hextx, txbin, strlen(tx->hextx), &outlen);
+
+        smp_value.p = txbin;
+        smp_value.len = outlen;
+
+        logdb_logdb_append(db, &smp_key, &smp_value);
+    }
+
+    u_assert_int_eq(logdb_memdb_size(db), (sizeof(sampledata) / sizeof(sampledata[0])));
+    logdb_logdb_flush(db);
+    logdb_logdb_free(db);
+
+    tree=RBTreeCreate(logdb_rbtree_IntComp,logdb_rbtree_free_key,logdb_rbtree_free_value,logdb_rbtree_IntPrint,logdb_rbtree_InfoPrint);
+
+    db = logdb_logdb_new();
+    /* set custom callback */
+    logdb_logdb_set_mem_cb(db, tree, logdbcallback);
+    u_assert_int_eq(logdb_logdb_load(db, dbtmpfile, false, NULL), true);
+
+    RBTreePrint(tree);
+    logdb_logdb_flush(db);
+    logdb_logdb_free(db);
+
+    RBTreeDestroy(tree);
+}
 
 void test_logdb()
 {

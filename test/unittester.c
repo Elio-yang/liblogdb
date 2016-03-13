@@ -24,6 +24,7 @@ extern void test_utils();
 extern void test_serialize();
 extern void test_red_black_tree();
 extern void test_logdb();
+extern void test_logdb_rb_tree();
 
 int U_TESTS_RUN = 0;
 int U_TESTS_FAIL = 0;
@@ -39,5 +40,7 @@ int main()
     u_run_test(test_serialize);
     u_run_test(test_red_black_tree);
     u_run_test(test_logdb);
+    u_run_test(test_logdb_rb_tree);
+    
     return 0;
 }
