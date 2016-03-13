@@ -50,6 +50,7 @@ LIBLOGDB_API cstring* cstr_new_buf(const void* buf, size_t sz);
 LIBLOGDB_API void cstr_free(cstring* s, int free_buf);
 
 LIBLOGDB_API int cstr_equal(const cstring* a, const cstring* b);
+LIBLOGDB_API int cstr_compare(const cstring* a, const cstring* b);
 LIBLOGDB_API int cstr_resize(cstring* s, size_t sz);
 LIBLOGDB_API int cstr_erase(cstring* s, size_t pos, ssize_t len);
 

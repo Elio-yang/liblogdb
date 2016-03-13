@@ -66,6 +66,12 @@ void test_cstr()
 
     cstr_free(s, true);
 
+    assert(cstr_compare(s1, s2) ==  0);
+    assert(cstr_compare(s1, s3) ==  1);
+    assert(cstr_compare(s3, s1) ==  -1);
+    assert(cstr_compare(s3, s4) ==  -1);
+    assert(cstr_compare(s4, s3) ==  1);
+
     assert(cstr_equal(s1, s2) == true);
     assert(cstr_equal(s1, s3) == false);
     assert(cstr_equal(s1, NULL) == false);
