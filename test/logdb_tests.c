@@ -499,4 +499,108 @@ void test_logdb()
 
     btc_logdb_flush(db);
     btc_logdb_free(db);
+
+
+    // airport data example
+    unlink(dbtmpfile);
+    db = btc_logdb_new();
+
+    u_assert_int_eq(btc_logdb_load(db, dbtmpfile, true, &error), true);
+    u_assert_int_eq(error, LOGDB_SUCCESS);
+
+    FILE *datafp = fopen("test/airports.dat", "r");
+    size_t len = 0;
+    ssize_t read;
+    char * line = NULL;
+    u_assert_int_eq(datafp != NULL, 1);
+    char buffer[1024];
+    int col = 0;
+    int lines = 0;
+    while ((read = getline(&line, &len, datafp)) != -1) {
+        col = 0;
+        int in_quotes = 0;
+        int start_col = -1;
+        int end_col = -1;
+        int was_in_quotes = 0;
+        struct buffer key_db_test;
+        struct buffer value_db_test;
+
+
+        for (i=0;i<strlen(line);i++)
+        {
+            if (line[i] == '"' && in_quotes == 0)
+            {
+                in_quotes = 1;
+                continue;
+            }
+
+            if (line[i] == '"' && in_quotes == 1)
+            {
+                in_quotes = 0;
+                was_in_quotes = 1;
+                continue;
+            }
+
+            if (line[i] == ',' && start_col > -1 && in_quotes == 0)
+            {
+                end_col = i-was_in_quotes;
+                memcpy(buffer, line+start_col+was_in_quotes, end_col-start_col-was_in_quotes);
+                buffer[end_col-start_col-was_in_quotes] = 0;
+                if (col == 0)
+                {
+                    key_db_test.p = buffer;
+                    key_db_test.len = strlen(buffer);
+                    value_db_test.p = line;
+                    value_db_test.len = strlen(line);
+                    btc_logdb_append(db, &key_db_test, &value_db_test);
+
+                    //deep check first 100 lines
+                    if (lines < 100)
+                    {
+                        // flush, close, reopen
+                        btc_logdb_flush(db);
+                        btc_logdb_free(db);
+
+                        db = btc_logdb_new();
+                        u_assert_int_eq(btc_logdb_load(db, dbtmpfile, false, &error), true);
+                        u_assert_int_eq(error, LOGDB_SUCCESS);
+
+                        cstring *value_test_1 = logdb_memdb_find(db, &key_db_test);
+                        u_assert_int_eq(strcmp(value_test_1->str, line), 0);
+                    }
+                }
+
+                col++;
+                start_col = i+1;
+                was_in_quotes = 0;
+                continue;
+            }
+
+            if (start_col == -1)
+                start_col = i;
+
+        }
+        lines++;
+    }
+    free(line);
+    fclose(datafp);
+
+    u_assert_int_eq(logdb_memdb_size(db), lines);
+
+    struct buffer dkey2 = {"1001", 4};
+    btc_logdb_delete(db, &dkey2);
+
+    u_assert_int_eq(logdb_memdb_size(db), lines-1);
+
+    btc_logdb_flush(db);
+    btc_logdb_free(db);
+
+    db = btc_logdb_new();
+    u_assert_int_eq(btc_logdb_load(db, dbtmpfile, false, &error), true);
+    u_assert_int_eq(error, LOGDB_SUCCESS);
+
+    u_assert_int_eq(logdb_memdb_size(db), lines-1);
+
+    btc_logdb_flush(db);
+    btc_logdb_free(db);
 }

@@ -45,14 +45,14 @@ enum btc_logdb_record_type {
     RECORD_TYPE_ERASE = 1
 };
 
-/** single key/value record */
+/** single key/value record (linked list node) */
 typedef struct btc_logdb_record {
     cstring* key;
     cstring* value;
-    struct btc_logdb_record* next;
-    struct btc_logdb_record* prev;
-    int written;
-    uint8_t mode;
+    struct btc_logdb_record* next; //linked list -> next node (NULL if end)
+    struct btc_logdb_record* prev; //linked list -> prev node (NULL if end)
+    int written; //! 0 = not written to databse, 1 = written
+    uint8_t mode; // record mode, 0 = WRITE, 1 = ERASE
 } btc_logdb_record;
 
 /////////// RECORD HANDLING

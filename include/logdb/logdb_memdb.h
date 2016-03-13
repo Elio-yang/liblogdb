@@ -24,11 +24,21 @@
 
  */
 
+/*
+ A simple linkes list memory DB,
+ extremly slow and only for callback demo purposes
+ 
+ If you are going to write a memory mapper for logdb, use a red black tree
+ http://web.mit.edu/~emin/Desktop/ref_to_emin/www.old/source_code/red_black_tree/index.html
+ 
+ Logdb does currently not provide an efficient memory map
+*/
+
 #ifndef __LIBBTC_LOGDB_MEMDB_H__
 #define __LIBBTC_LOGDB_MEMDB_H__
 
-#include <logdb/cstr.h>
 #include <logdb/buffer.h>
+#include <logdb/cstr.h>
 #include <logdb/logdb_rec.h>
 #include <logdb/logdb_file.h>
 

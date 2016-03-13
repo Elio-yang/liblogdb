@@ -102,24 +102,6 @@ void btc_logdb_set_mem_cb(btc_log_db* db, void *ctx, void (*new_cb)(void*, btc_l
     db->mem_map_cb = new_cb;
 }
 
-void logdb_int_memmap(void *ctx, btc_logdb_record *rec)
-{
-    // get context
-    btc_log_db *handle = (btc_log_db * )ctx;
-    btc_logdb_record *old_head = handle->memdb_head;
-    handle->memdb_head = btc_logdb_record_copy(rec);
-
-    //re-link the chain
-    if(old_head)
-    {
-        handle->memdb_head->prev = old_head;
-        old_head->next = handle->memdb_head;
-    }
-
-    //remove old keys
-    btc_logdb_record_rm_desc(old_head, rec->key);
-}
-
 logdb_bool btc_logdb_load(btc_log_db* handle, const char *file_path, logdb_bool create, enum btc_logdb_error *error)
 {
     handle->file = fopen(file_path, create ? "a+b" : "r+b");
@@ -193,12 +175,8 @@ logdb_bool btc_logdb_load(btc_log_db* handle, const char *file_path, logdb_bool 
         // if a memory mapping function was provided,
         // pass the record together with the context to
         // this function.
-        // otherwise: use non-schematic internal memory mapping
-        //            (uses plain record key/value buffers)
         if (handle->mem_map_cb != NULL)
             handle->mem_map_cb(handle->cb_ctx, rec);
-        else
-            logdb_int_memmap(handle, rec);
     }
     btc_logdb_record_free(rec);
 
