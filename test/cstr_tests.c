@@ -73,6 +73,9 @@ void test_cstr()
     assert(cstr_equal(s3, s3) == true);
     assert(cstr_equal(s3, s4) == false);
     cstr_erase(s4, 0, 3);
+    cstr_erase(s4, 110, 3);
+    cstr_erase(s4, s4->len, 0);
+    cstr_erase(s4, 0, 100);
     assert(strcmp(s4->str, "1") == 0);
 
     cstr_free(s1, true);
