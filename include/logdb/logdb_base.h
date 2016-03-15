@@ -2,8 +2,7 @@
 
  The MIT License (MIT)
 
- Copyright (c) 2012 exMULTI, Inc.
- Copyright (c) 2015 Jonas Schnelli
+ Copyright (c) 2016 Jonas Schnelli
 
  Permission is hereby granted, free of charge, to any person obtaining
  a copy of this software and associated documentation files (the "Software"),
@@ -23,37 +22,48 @@
  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  OTHER DEALINGS IN THE SOFTWARE.
 
- */
-
-
-#ifndef __LIBLOGDB_BUFFER_H__
-#define __LIBLOGDB_BUFFER_H__
-
-#include <logdb/logdb_base.h>
+*/
 
 #include <stdint.h>
-#include <sys/types.h>
+#include <stddef.h>
+
+#ifndef __LIBLOGDB_BASE_H__
+#define __LIBLOGDB_BASE_H__
+
+typedef uint8_t logdb_bool; /*!serialize, c/c++ save bool*/
+
+#ifndef true
+#define true 1
+#endif
+
+#ifndef false
+#define false 0
+#endif
+
+#ifndef NULL
+#define NULL 0
+#endif 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct buffer {
-    void* p;
-    size_t len;
-};
-
-struct const_buffer {
-    const void* p;
-    size_t len;
-};
-
-LIBLOGDB_API int buffer_equal(const void* a, const void* b);
-LIBLOGDB_API void buffer_free(void* struct_buffer);
-LIBLOGDB_API struct buffer* buffer_copy(const void* data, size_t data_len);
+#ifndef LIBBTC_API
+#if defined(_WIN32)
+#ifdef LIBBTC_BUILD
+#define LIBLOGDB_API __declspec(dllexport)
+#else
+#define LIBLOGDB_API
+#endif
+#elif defined(__GNUC__) && defined(LIBBTC_BUILD)
+#define LIBLOGDB_API __attribute__((visibility("default")))
+#else
+#define LIBLOGDB_API
+#endif
+#endif
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __LIBLOGDB_BUFFER_H__ */
+#endif /* __LIBLOGDB_BASE_H__ */

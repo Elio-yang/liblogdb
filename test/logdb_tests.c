@@ -5,7 +5,6 @@
  **********************************************************************/
 
 #include <logdb/logdb.h>
-#include <logdb/logdb_memdb.h>
 #include <logdb/utils.h>
 #include "red_black_tree.h"
 

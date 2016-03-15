@@ -34,11 +34,12 @@
  Logdb does currently not provide an efficient memory map
 */
 
-#ifndef __LIBLOGDB_LOGDB_MEMDB_H__
-#define __LIBLOGDB_LOGDB_MEMDB_H__
+#ifndef __LIBLOGDB_MEMDB_H__
+#define __LIBLOGDB_MEMDB_H__
 
 #include <logdb/buffer.h>
 #include <logdb/cstr.h>
+#include <logdb/logdb_base.h>
 #include <logdb/logdb_rec.h>
 #include <logdb/logdb_file.h>
 
@@ -60,4 +61,4 @@ LIBLOGDB_API size_t logdb_memdb_size(logdb_log_db* db);
 }
 #endif
 
-#endif /* __LIBLOGDB_LOGDB_MEMDB_H__ */
+#endif /* __LIBLOGDB_MEMDB_H__ */

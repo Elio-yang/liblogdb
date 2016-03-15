@@ -32,7 +32,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include <logdb/logdb.h>
+#include <logdb/logdb_base.h>
 
 #ifdef __cplusplus
 extern "C" {

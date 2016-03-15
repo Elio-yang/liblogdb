@@ -29,7 +29,7 @@
 #ifndef __LIBLOGDB_CSTR_H__
 #define __LIBLOGDB_CSTR_H__
 
-#include <logdb/logdb.h>
+#include <logdb/logdb_base.h>
 
 #include <stdlib.h>
 #include <sys/types.h>

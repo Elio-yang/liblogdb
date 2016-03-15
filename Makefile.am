@@ -5,6 +5,7 @@ ACLOCAL_AMFLAGS = -I build-aux/m4
 lib_LTLIBRARIES = liblogdb.la
 include_HEADERS = \
     include/logdb/logdb.h \
+    include/logdb/logdb_base.h \
     include/logdb/logdb_file.h \
     include/logdb/logdb_rec.h \
     include/logdb/logdb_memdb.h \

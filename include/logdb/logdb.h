@@ -24,43 +24,37 @@
 
 */
 
-#include <stdint.h>
-#include <stddef.h>
+
+/*
+ File Format
+
+ [4 bytes]          per file magic 0xF9, 0xAA, 0x03, 0xBA
+ [int32_t/4 bytes]  version number
+ [int32_t/4 bytes]  version flags
+ [varint]           *hashlength* = length of hash used in file (shorten sha256, max 32 bytes, 8 by default)
+ ---- records
+ [4 bytes]          static per record magic 0x88, 0x61, 0xAD, 0xFC
+ [hashlength]       partial sha256 hash of the record body
+ [body]
+ [1 byte]         record type (0 = write | 1 = erase)
+ [varint]         length of the key
+ [variable]       key data
+ [varint]         length of the value
+ [variable]       value data
+ [hashlength]       partial sha256 of *all data* up to this point in logdb
+ ---- more records
+*/
 
 #ifndef __LIBLOGDB_H__
 #define __LIBLOGDB_H__
-
-typedef uint8_t logdb_bool; /*!serialize, c/c++ save bool*/
-
-#ifndef true
-#define true 1
-#endif
-
-#ifndef false
-#define false 0
-#endif
-
-#ifndef NULL
-#define NULL 0
-#endif 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#ifndef LIBBTC_API
-#if defined(_WIN32)
-#ifdef LIBBTC_BUILD
-#define LIBLOGDB_API __declspec(dllexport)
-#else
-#define LIBLOGDB_API
-#endif
-#elif defined(__GNUC__) && defined(LIBBTC_BUILD)
-#define LIBLOGDB_API __attribute__((visibility("default")))
-#else
-#define LIBLOGDB_API
-#endif
-#endif
+#include <logdb/logdb_file.h>
+#include <logdb/logdb_rec.h>
+#include <logdb/logdb_memdb.h>
 
 #ifdef __cplusplus
 }

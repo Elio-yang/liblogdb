@@ -24,14 +24,14 @@
  
 */
 
-#ifndef __LIBLOGDB_LOGDB_REC_H__
-#define __LIBLOGDB_LOGDB_REC_H__
+#ifndef __LIBLOGDB_REC_H__
+#define __LIBLOGDB_REC_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <logdb/logdb.h>
+#include <logdb/logdb_base.h>
 
 #include "buffer.h"
 #include "cstr.h"
@@ -84,4 +84,4 @@ LIBLOGDB_API logdb_record* logdb_record_rm_desc(logdb_record *usehead, cstring *
 }
 #endif
 
-#endif /* __LIBLOGDB_LOGDB_REC_H__ */
+#endif /* __LIBLOGDB_REC_H__ */

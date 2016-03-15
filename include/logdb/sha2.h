@@ -32,7 +32,7 @@
 #ifndef __LOGDB_SHA2_H__
 #define __LOGDB_SHA2_H__
 
-#include <logdb/logdb.h>
+#include <logdb/logdb_base.h>
 
 #include <stdint.h>
 #include <stddef.h>
