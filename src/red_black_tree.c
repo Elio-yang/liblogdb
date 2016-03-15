@@ -3,21 +3,6 @@
 #include <logdb/utils.h>
 #include <stdlib.h>
 
-int StackNotEmpty(stk_stack * theStack) {
-    return( theStack ? (int) theStack->top : 0);
-}
-
-stk_stack * StackJoin(stk_stack * stack1, stk_stack * stack2) {
-    if (!stack1->tail) {
-        free(stack1);
-        return(stack2);
-    } else {
-        stack1->tail->next=stack2->top;
-        stack1->tail=stack2->tail;
-        free(stack2);
-        return(stack1);
-    }
-}
 
 stk_stack * StackCreate() {
     stk_stack * newStack;
@@ -26,7 +11,6 @@ stk_stack * StackCreate() {
     newStack->top=newStack->tail=NULL;
     return(newStack);
 }
-
 
 void StackPush(stk_stack * theStack, DATA_TYPE newInfoPointer) {
     stk_stack_node * newNode;
