@@ -9,9 +9,10 @@ What is liblogdb?
 
 Logdb is a simple and save append only key/value database. Ideal for crypto key storages and similar applications.
 
-* no dependencies (only dependency libsecp256k1)
-* full test coverage
-* mem leak free (valgrind check during CI)
+* pure C89
+* no dependencies
+* high test coverage
+* memory leak free (valgrind check during CI)
 
 Data format
 ----------------
@@ -45,3 +46,8 @@ How to Build
 ./configure
 make check
 ```
+
+Who is using logdb
+----------------
+
+* libbtc, https://github.com/libbtc/libbtc
