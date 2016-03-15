@@ -48,7 +48,7 @@ typedef uint8_t logdb_bool; /*!serialize, c/c++ save bool*/
 extern "C" {
 #endif
 
-#ifndef LIBBTC_API
+#ifndef LIBLOGDB_API
 #if defined(_WIN32)
 #ifdef LIBBTC_BUILD
 #define LIBLOGDB_API __declspec(dllexport)
