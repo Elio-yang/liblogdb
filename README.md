@@ -13,6 +13,31 @@ Logdb is a simple and save append only key/value database. Ideal for crypto key 
 * full test coverage
 * mem leak free (valgrind check during CI)
 
+Data format
+----------------
+
+The data serialization format was designed to allow detection of all types of file corruption.
+Because logdb only appends data, possible file corruptions should be reduced.
+In case of a corrupt file, the static record header-magic as well as the per-record 16byte sha256
+allows to identify records.
+
+    [8 bytes]          per file magic 0xF9, 0xAA, 0x03, 0xBA
+    [int32_t/4 bytes]  version number
+    [int32_t/4 bytes]  version flags
+    ---- records
+      [8 bytes]          static per record magic 0x88, 0x61, 0xAD, 0xFC, 0x5A, 0x11, 0x22, 0xF8
+      [16 bytes]         partial sha256 hash (first 16 bytes) of the record body
+      ---- record-body start ----
+      [1 byte]           record type (0 = write | 1 = erase)
+      [varint]           length of the key
+      [variable]         key data
+      [varint]           length of the value
+      [variable]         value data
+      ---- record-body end ----
+      [16 bytes]         partial sha256 of *all data* up to this point in logdb
+      ---- record end ---
+      ---- more records
+
 How to Build
 ----------------
 ```
