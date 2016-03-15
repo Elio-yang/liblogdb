@@ -72,3 +72,18 @@ size_t logdb_memdb_size(logdb_log_db* db)
 {
     return logdb_record_height(db->memdb_head);
 }
+
+void logdb_memdb_cleanup(void* ctx)
+{
+    logdb_log_db *db = (logdb_log_db *)ctx;
+    logdb_record *rec;
+
+    /* free the internal database */
+    rec = db->memdb_head;
+    while (rec)
+    {
+        logdb_record *prev_rec = rec->prev;
+        logdb_record_free(rec);
+        rec = prev_rec;
+    }
+}

@@ -26,6 +26,7 @@
 
 #include <logdb/logdb.h>
 #include <logdb/logdb_memdb.h>
+#include <logdb/logdb_rbtree.h>
 #include <logdb/serialize.h>
 
 #include <assert.h>
@@ -41,17 +42,40 @@ static const unsigned char file_hdr_magic[4] = {0xF9, 0xAA, 0x03, 0xBA}; /* head
 static const unsigned char record_magic[8] = {0x88, 0x61, 0xAD, 0xFC, 0x5A, 0x11, 0x22, 0xF8}; /* record magic */
 
 
-logdb_log_db* logdb_new()
+logdb_log_db* logdb_new_internal()
 {
     logdb_log_db* db;
     db = calloc(1, sizeof(*db));
+    db->cb_ctx = NULL;
     db->memdb_head = NULL;
     db->cache_head = NULL;
     db->hashlen = kLOGDB_DEFAULT_HASH_LEN;
     db->version = kLOGDB_DEFAULT_VERSION;
     db->support_flags = 0; /* reserved for future changes */
     sha256_Init(&db->hashctx);
-    logdb_set_mem_cb(db, db, logdb_memdb_append);
+
+    return db;
+}
+
+logdb_log_db* logdb_new()
+{
+    logdb_log_db* db = logdb_new_internal();
+
+    /* use a linked list for default memory mapping */
+    /* Will be slow */
+    logdb_set_mem_cb(db, db, logdb_memdb_append, logdb_memdb_cleanup);
+
+    return db;
+}
+
+logdb_log_db* logdb_rbtree_new()
+{
+    logdb_log_db* db = logdb_new_internal();
+
+    /* use a red black tree as default memory mapping */
+    logdb_rbtree_db* handle = logdb_rbtree_db_new();
+    logdb_set_mem_cb(db, handle, logdb_rbtree_append, logdb_rbtree_free);
+
     return db;
 }
 
@@ -70,8 +94,6 @@ void logdb_free_cachelist(logdb_log_db* db)
 
 void logdb_free(logdb_log_db* db)
 {
-    logdb_record *rec;
-
     if (!db)
         return;
 
@@ -83,23 +105,19 @@ void logdb_free(logdb_log_db* db)
 
     logdb_free_cachelist(db);
 
-    /* free the internal database */
-    rec = db->memdb_head;
-    while (rec)
-    {
-        logdb_record *prev_rec = rec->prev;
-        logdb_record_free(rec);
-        rec = prev_rec;
-    }
+    /* allow the memory mapper to do a cleanup */
+    if (db->map_cleanup_cb)
+        db->map_cleanup_cb(db->cb_ctx);
 
     free(db);
 }
 
-void logdb_set_mem_cb(logdb_log_db* db, void *ctx, void (*new_cb)(void*, logdb_record *))
+void logdb_set_mem_cb(logdb_log_db* db, void *ctx, void (*new_cb)(void*, logdb_record *),  void (*new_cleanup_cb)(void*))
 {
     /* set the context passed in the callback, sender must take care about lifetime of object */
     db->cb_ctx = ctx;
     db->mem_map_cb = new_cb;
+    db->map_cleanup_cb = new_cleanup_cb;
 }
 
 logdb_bool logdb_load(logdb_log_db* handle, const char *file_path, logdb_bool create, enum logdb_error *error)
@@ -256,10 +274,6 @@ void logdb_append(logdb_log_db* db, struct buffer *key, struct buffer *val)
     /* update mem mapped database */
     if (db->mem_map_cb)
         db->mem_map_cb(db->cb_ctx, rec);
-    else
-    {
-        logdb_memdb_append(db->cb_ctx, rec);
-    }
 }
 
 cstring * logdb_find_cache(logdb_log_db* db, struct buffer *key)

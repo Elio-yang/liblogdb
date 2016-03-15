@@ -54,6 +54,7 @@ enum logdb_error {
 typedef struct logdb_log_db {
     FILE *file;
     void (*mem_map_cb)(void*, logdb_record *); /* callback for memory mapping */
+    void (*map_cleanup_cb)(void*); /* callback for cleanup/shutdown */
     void *cb_ctx; /* callback context */
     logdb_record *memdb_head; /* optional non-schematic memory database */
     logdb_record *cache_head;
@@ -68,6 +69,10 @@ typedef struct logdb_log_db {
 /** creates new logdb handle, sets default values */
 LIBLOGDB_API logdb_log_db* logdb_new();
 
+/** creates new logdb handle, sets default values 
+    used red black tree for memory mapping */
+LIBLOGDB_API logdb_log_db* logdb_rbtree_new();
+
 /** frees database and all in-memory records, closes file if open */
 LIBLOGDB_API void logdb_free(logdb_log_db* db);
 
@@ -75,7 +80,7 @@ LIBLOGDB_API void logdb_free(logdb_log_db* db);
     the callback will be called when a record will be loaded from disk, appended, deleted 
     this will allow to do a application specific memory mapping
  */
-LIBLOGDB_API void logdb_set_mem_cb(logdb_log_db* db, void *ctx, void (*new_cb)(void*, logdb_record *));
+LIBLOGDB_API void logdb_set_mem_cb(logdb_log_db* db, void *ctx, void (*new_cb)(void*, logdb_record *),  void (*new_cleanup_cb)(void*));
 
 /** loads given file as database (memory mapping) */
 LIBLOGDB_API logdb_bool logdb_load(logdb_log_db* handle, const char *file_path, logdb_bool create, enum logdb_error *error);

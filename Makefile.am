@@ -9,12 +9,14 @@ include_HEADERS = \
     include/logdb/logdb_file.h \
     include/logdb/logdb_rec.h \
     include/logdb/logdb_memdb.h \
+    include/logdb/logdb_rbtree.h \
 	include/logdb/cstr.h \
     include/logdb/serialize.h \
     include/logdb/buffer.h \
     include/logdb/sha2.h \
     include/logdb/utils.h \
-    include/logdb/portable_endian.h
+    include/logdb/portable_endian.h \
+    include/logdb/red_black_tree.h
 
 noinst_HEADERS =
 
@@ -29,6 +31,7 @@ liblogdb_la_SOURCES = \
 	src/serialize.c \
     src/logdb_file.c \
     src/logdb_memdb.c \
+    src/logdb_rbtree.c \
     src/logdb_rec.c \
     src/red_black_tree.c
 

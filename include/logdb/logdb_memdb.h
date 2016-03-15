@@ -57,6 +57,7 @@ LIBLOGDB_API cstring * logdb_memdb_find(logdb_log_db* db, struct buffer *key);
 
 LIBLOGDB_API size_t logdb_memdb_size(logdb_log_db* db);
 
+LIBLOGDB_API void logdb_memdb_cleanup(void* ctx);
 #ifdef __cplusplus
 }
 #endif

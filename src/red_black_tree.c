@@ -1,5 +1,4 @@
-#include "red_black_tree.h"
-
+#include <logdb/red_black_tree.h>
 #include <logdb/utils.h>
 #include <stdlib.h>
 
@@ -696,10 +695,17 @@ stk_stack* RBEnumerate(rb_red_blk_tree* tree, void* low, void* high) {
   }
   return(enumResultStack);
 }
-      
-    
-  
-  
 
+size_t rbtree_count_intern(rb_red_blk_tree* tree, rb_red_blk_node* x) {
+    size_t cnt = 0;
+    if (x != tree->nil) {
+        cnt++;
+        cnt += rbtree_count_intern(tree,x->left);
+        cnt += rbtree_count_intern(tree,x->right);
+    }
+    return cnt;
+}
 
-
+size_t rbtree_count(rb_red_blk_tree* tree) {
+    return rbtree_count_intern(tree, tree->root->left);
+}

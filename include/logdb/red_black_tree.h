@@ -13,6 +13,9 @@
 /*                names beginning with "g".  An example of a global */
 /*                variable name is gNewtonsConstant. */
 
+#ifndef __LIBLOGDB_RED_BLACK_TREE_H__
+#define __LIBLOGDB_RED_BLACK_TREE_H__
+
 #ifndef DATA_TYPE
 #define DATA_TYPE void *
 #endif
@@ -71,6 +74,7 @@ rb_red_blk_node* TreePredecessor(rb_red_blk_tree*,rb_red_blk_node*);
 rb_red_blk_node* TreeSuccessor(rb_red_blk_tree*,rb_red_blk_node*);
 rb_red_blk_node* RBExactQuery(rb_red_blk_tree*, void*);
 stk_stack * RBEnumerate(rb_red_blk_tree* tree,void* low, void* high);
+size_t rbtree_count(rb_red_blk_tree* tree);
 void NullFunction(void*);
 /*  These functions are all very straightforward and self-commenting so */
 /*  I didn't think additional comments would be useful */
@@ -80,3 +84,5 @@ void StackPush(stk_stack * theStack, DATA_TYPE newInfoPointer);
 void * StackPop(stk_stack * theStack);
 int StackNotEmpty(stk_stack *);
 void StackDestroy(stk_stack * theStack,void DestFunc(void * a));
+
+#endif /* __LIBLOGDB_RED_BLACK_TREE_H__ */
