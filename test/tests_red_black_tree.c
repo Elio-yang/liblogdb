@@ -31,19 +31,14 @@ void InfoPrint(void* a) {
 
 
 int test_red_black_tree() {
-    stk_stack* enumResult;
-    int option=0;
-    int newKey,newKey2;
-    int* newInt;
     char *akey;
     char *avalue;
     char *akey2;
     char *avalue2;
-    rb_red_blk_node *low = 0;
-    rb_red_blk_tree *heigh = 0;
     rb_red_blk_node* newNode;
     rb_red_blk_node* newNode2;
     rb_red_blk_tree* tree;
+    stk_stack *stack;
 
     tree=RBTreeCreate(IntComp,free_key,free_value,IntPrint,InfoPrint);
 
@@ -65,7 +60,9 @@ int test_red_black_tree() {
     newNode = TreeSuccessor(tree,newNode);
     newNode = TreePredecessor(tree,newNode);
 
-    RBEnumerate(tree, newNode, newNode2);
+    stack = RBEnumerate(tree, newNode, newNode2);
+    StackDestroy(stack, NULL);
+
     RBDelete(tree, newNode);
 
     RBTreeDestroy(tree);
