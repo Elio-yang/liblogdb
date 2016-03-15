@@ -50,7 +50,7 @@ extern "C" {
 #include <stddef.h>
 
 /** appends record to the mem db */
-LIBLOGDB_API void logdb_memdb_append(void* ctx, logdb_logdb_record *rec);
+LIBLOGDB_API void logdb_memdb_append(void* ctx, logdb_record *rec);
 
 LIBLOGDB_API cstring * logdb_memdb_find(logdb_log_db* db, struct buffer *key);
 

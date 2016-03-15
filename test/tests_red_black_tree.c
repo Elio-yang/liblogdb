@@ -69,7 +69,3 @@ int test_red_black_tree() {
 
     return 1;
 }
-
-
-
-

@@ -40,45 +40,45 @@ extern "C" {
 #include <stddef.h>
 
 /** record types */
-enum logdb_logdb_record_type {
+enum logdb_record_type {
     RECORD_TYPE_WRITE = 0,
     RECORD_TYPE_ERASE = 1
 };
 
 /** single key/value record (linked list node) */
-typedef struct logdb_logdb_record {
+typedef struct logdb_record {
     cstring* key;
     cstring* value;
-    struct logdb_logdb_record* next; /* linked list -> next node (NULL if end) */
-    struct logdb_logdb_record* prev; /* linked list -> prev node (NULL if end) */
+    struct logdb_record* next; /* linked list -> next node (NULL if end) */
+    struct logdb_record* prev; /* linked list -> prev node (NULL if end) */
     int written; /* 0 = not written to databse, 1 = written */
     uint8_t mode; /* record mode, 0 = WRITE, 1 = ERASE */
-} logdb_logdb_record;
+} logdb_record;
 
 /* RECORD HANDLING  */
 /** creates new logdb key/value record */
-LIBLOGDB_API logdb_logdb_record* logdb_logdb_record_new();
+LIBLOGDB_API logdb_record* logdb_record_new();
 
 /** free record including containing key/value data */
-LIBLOGDB_API void logdb_logdb_record_free(logdb_logdb_record* rec);
+LIBLOGDB_API void logdb_record_free(logdb_record* rec);
 
 /** sets key value (binary buffer copy) */
-LIBLOGDB_API void logdb_logdb_record_set(logdb_logdb_record* rec, struct buffer *key, struct buffer *val);
+LIBLOGDB_API void logdb_record_set(logdb_record* rec, struct buffer *key, struct buffer *val);
 
 /** copy database record */
-LIBLOGDB_API logdb_logdb_record* logdb_logdb_record_copy(logdb_logdb_record* b_rec);
+LIBLOGDB_API logdb_record* logdb_record_copy(logdb_record* b_rec);
 
 /** serialize a record into a cstring */
-LIBLOGDB_API void logdb_logdb_record_ser(logdb_logdb_record* rec, cstring *buf);
+LIBLOGDB_API void logdb_record_ser(logdb_record* rec, cstring *buf);
 
 /** get current height in linkes list */
-LIBLOGDB_API size_t logdb_logdb_record_height(logdb_logdb_record* head);
+LIBLOGDB_API size_t logdb_record_height(logdb_record* head);
 
 /** find the next record with key downwards the linkes list */
-LIBLOGDB_API cstring * logdb_logdb_record_find_desc(logdb_logdb_record* head, struct buffer *key);
+LIBLOGDB_API cstring * logdb_record_find_desc(logdb_record* head, struct buffer *key);
 
 /** remove records with given key (to keep memory clean) */
-LIBLOGDB_API logdb_logdb_record* logdb_logdb_record_rm_desc(logdb_logdb_record *usehead, cstring *key);
+LIBLOGDB_API logdb_record* logdb_record_rm_desc(logdb_record *usehead, cstring *key);
 
 #ifdef __cplusplus
 }

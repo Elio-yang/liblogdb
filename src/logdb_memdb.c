@@ -32,22 +32,22 @@
 #include <stddef.h>
 #include <string.h>
 
-void logdb_memdb_append(void* ctx, logdb_logdb_record *rec)
+void logdb_memdb_append(void* ctx, logdb_record *rec)
 {
     logdb_log_db *db = (logdb_log_db *)ctx;
-    logdb_logdb_record *rec_dup;
-    logdb_logdb_record *current_db_head;
+    logdb_record *rec_dup;
+    logdb_record *current_db_head;
 
     if (rec->mode == RECORD_TYPE_ERASE && db->memdb_head)
     {
-        db->memdb_head = logdb_logdb_record_rm_desc(db->memdb_head, rec->key);
+        db->memdb_head = logdb_record_rm_desc(db->memdb_head, rec->key);
         return;
     }
 
     /* internal database:
        copy record and append to internal mem db (linked list)
     */
-    rec_dup = logdb_logdb_record_copy(rec);
+    rec_dup = logdb_record_copy(rec);
     current_db_head = db->memdb_head;
 
     /* if the list is NOT empty, link the current head */
@@ -60,15 +60,15 @@ void logdb_memdb_append(void* ctx, logdb_logdb_record *rec)
     /* set the current head */
     db->memdb_head = rec_dup;
 
-    logdb_logdb_record_rm_desc(current_db_head, rec_dup->key);
+    logdb_record_rm_desc(current_db_head, rec_dup->key);
 }
 
 cstring * logdb_memdb_find(logdb_log_db* db, struct buffer *key)
 {
-    return logdb_logdb_record_find_desc(db->memdb_head, key);
+    return logdb_record_find_desc(db->memdb_head, key);
 }
 
 size_t logdb_memdb_size(logdb_log_db* db)
 {
-    return logdb_logdb_record_height(db->memdb_head);
+    return logdb_record_height(db->memdb_head);
 }

@@ -32,9 +32,9 @@
 #include <stddef.h>
 #include <string.h>
 
-logdb_logdb_record* logdb_logdb_record_new()
+logdb_record* logdb_record_new()
 {
-    logdb_logdb_record* record;
+    logdb_record* record;
     record = calloc(1, sizeof(*record));
     record->key = cstr_new_sz(32);
     record->value = cstr_new_sz(128);
@@ -43,7 +43,7 @@ logdb_logdb_record* logdb_logdb_record_new()
     return record;
 }
 
-void logdb_logdb_record_free(logdb_logdb_record* rec)
+void logdb_record_free(logdb_record* rec)
 {
     if (!rec)
         return;
@@ -56,7 +56,7 @@ void logdb_logdb_record_free(logdb_logdb_record* rec)
     free(rec);
 }
 
-void logdb_logdb_record_set(logdb_logdb_record* rec, struct buffer *key, struct buffer *val)
+void logdb_record_set(logdb_record* rec, struct buffer *key, struct buffer *val)
 {
     if (key == NULL)
         return;
@@ -71,9 +71,9 @@ void logdb_logdb_record_set(logdb_logdb_record* rec, struct buffer *key, struct 
         rec->mode = RECORD_TYPE_ERASE;
 }
 
-logdb_logdb_record* logdb_logdb_record_copy(logdb_logdb_record* b_rec)
+logdb_record* logdb_record_copy(logdb_record* b_rec)
 {
-    logdb_logdb_record* a_rec = logdb_logdb_record_new();
+    logdb_record* a_rec = logdb_record_new();
     cstr_append_cstr(a_rec->key, b_rec->key);
     cstr_append_cstr(a_rec->value, b_rec->value);
     a_rec->written = b_rec->written;
@@ -81,7 +81,7 @@ logdb_logdb_record* logdb_logdb_record_copy(logdb_logdb_record* b_rec)
     return a_rec;
 }
 
-void logdb_logdb_record_ser(logdb_logdb_record* rec, cstring *buf)
+void logdb_record_ser(logdb_record* rec, cstring *buf)
 {
     ser_bytes(buf, &rec->mode, 1);
     ser_varlen(buf, rec->key->len);
@@ -95,10 +95,10 @@ void logdb_logdb_record_ser(logdb_logdb_record* rec, cstring *buf)
     }
 }
 
-size_t logdb_logdb_record_height(logdb_logdb_record* head)
+size_t logdb_record_height(logdb_record* head)
 {
     size_t cnt = 0;
-    logdb_logdb_record *rec_loop = head;
+    logdb_record *rec_loop = head;
     while (rec_loop)
     {
         if (rec_loop->mode == RECORD_TYPE_WRITE)
@@ -110,11 +110,11 @@ size_t logdb_logdb_record_height(logdb_logdb_record* head)
     return cnt;
 }
 
-cstring * logdb_logdb_record_find_desc(logdb_logdb_record* head, struct buffer *key)
+cstring * logdb_record_find_desc(logdb_record* head, struct buffer *key)
 {
     cstring *found_value = NULL;
     cstring *keycstr;
-    logdb_logdb_record *rec;
+    logdb_record *rec;
 
     if (key == NULL)
         return NULL;
@@ -140,14 +140,14 @@ cstring * logdb_logdb_record_find_desc(logdb_logdb_record* head, struct buffer *
     return found_value;
 }
 
-logdb_logdb_record * logdb_logdb_record_rm_desc(logdb_logdb_record *usehead, cstring *key)
+logdb_record * logdb_record_rm_desc(logdb_record *usehead, cstring *key)
 {
     /* remove old records with same key */
-    logdb_logdb_record *rec_loop = usehead;
-    logdb_logdb_record *rec_head = usehead;
+    logdb_record *rec_loop = usehead;
+    logdb_record *rec_head = usehead;
     while (rec_loop)
     {
-        logdb_logdb_record *prev_rec = rec_loop->prev;
+        logdb_record *prev_rec = rec_loop->prev;
         if (cstr_equal(rec_loop->key, key))
         {
             /* remove from linked list */
@@ -161,7 +161,7 @@ logdb_logdb_record * logdb_logdb_record_rm_desc(logdb_logdb_record *usehead, cst
             if (rec_loop == usehead)
                 rec_head = rec_loop->prev;
 
-            logdb_logdb_record_free(rec_loop);
+            logdb_record_free(rec_loop);
         }
         
         rec_loop = prev_rec;
