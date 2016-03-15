@@ -247,7 +247,7 @@ void test_logdb()
 
     /* ---------------------------------------------------- */
     memcpy(wrk_buf, buf, fsize);
-    wrk_buf[44] = 0x00; /* wrong checksum hash */
+    wrk_buf[66] = 0x00; /* wrong checksum hash */
 
     unlink(dbtmpfile);
     f = fopen(dbtmpfile, "wb");
@@ -261,7 +261,7 @@ void test_logdb()
 
     /* ---------------------------------------------------- */
     memcpy(wrk_buf, buf, fsize);
-    wrk_buf[31] = 0xFF; /* wrong value length */
+    wrk_buf[42] = 0xFF; /* wrong value length */
 
     unlink(dbtmpfile);
     f = fopen(dbtmpfile, "wb");

@@ -28,20 +28,21 @@
 /*
  File Format
 
- [4 bytes]          per file magic 0xF9, 0xAA, 0x03, 0xBA
+ [8 bytes]          per file magic 0xF9, 0xAA, 0x03, 0xBA
  [int32_t/4 bytes]  version number
  [int32_t/4 bytes]  version flags
- [varint]           *hashlength* = length of hash used in file (shorten sha256, max 32 bytes, 8 by default)
  ---- records
- [4 bytes]          static per record magic 0x88, 0x61, 0xAD, 0xFC
- [hashlength]       partial sha256 hash of the record body
- [body]
- [1 byte]         record type (0 = write | 1 = erase)
- [varint]         length of the key
- [variable]       key data
- [varint]         length of the value
- [variable]       value data
- [hashlength]       partial sha256 of *all data* up to this point in logdb
+   [8 bytes]          static per record magic 0x88, 0x61, 0xAD, 0xFC, 0x5A, 0x11, 0x22, 0xF8
+   [16 bytes]         partial sha256 hash (first 16 bytes) of the record body
+   ---- record-body start ----
+   [1 byte]           record type (0 = write | 1 = erase)
+   [varint]           length of the key
+   [variable]         key data
+   [varint]           length of the value
+   [variable]         value data
+   ---- record-body end ----
+   [16 bytes]         partial sha256 of *all data* up to this point in logdb
+   ---- record end ---
  ---- more records
 */
 

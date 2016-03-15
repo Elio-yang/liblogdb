@@ -34,11 +34,11 @@
 #include <string.h>
 
 /* reduce sha256 hash to 8 bytes for checksum */
-#define kLOGDB_DEFAULT_HASH_LEN 8
+#define kLOGDB_DEFAULT_HASH_LEN 16
 #define kLOGDB_DEFAULT_VERSION 1
 
 static const unsigned char file_hdr_magic[4] = {0xF9, 0xAA, 0x03, 0xBA}; /* header magic */
-static const unsigned char record_magic[4] = {0x88, 0x61, 0xAD, 0xFC}; /* record magic */
+static const unsigned char record_magic[8] = {0x88, 0x61, 0xAD, 0xFC, 0x5A, 0x11, 0x22, 0xF8}; /* record magic */
 
 
 logdb_log_db* logdb_new()
@@ -125,9 +125,6 @@ logdb_bool logdb_load(logdb_log_db* handle, const char *file_path, logdb_bool cr
         fwrite(&v, sizeof(v), 1, handle->file); /* uint32_t, LE */
         v = htole32(handle->support_flags);
         fwrite(&v, sizeof(v), 1, handle->file); /* uint32_t, LE */
-
-        /* write hash len */
-        fwrite(&handle->hashlen, 1, 1, handle->file); /* uint8_t */
     }
     else
     {
@@ -158,14 +155,6 @@ logdb_bool logdb_load(logdb_log_db* handle, const char *file_path, logdb_bool cr
             return false;
         }
         handle->support_flags = le32toh(v);
-
-        /* read hashlen */
-        if (fread(&handle->hashlen, 1, 1, handle->file) != 1)
-        {
-            if (error != NULL)
-                *error = LOGDB_ERROR_WRONG_FILE_FORMAT;
-            return false;
-        }
     }
 
     rec = logdb_record_new();
@@ -185,7 +174,8 @@ logdb_bool logdb_load(logdb_log_db* handle, const char *file_path, logdb_bool cr
 
     if (record_error != LOGDB_SUCCESS)
     {
-        *error = record_error;
+        if (error)
+            *error = record_error;
         return false;
     }
 
@@ -296,8 +286,8 @@ void logdb_write_record(logdb_log_db* db, logdb_record *rec)
     sha256_Raw((const uint8_t*)serbuf->str, serbuf->len, hash);
 
     /* write record header */
-    assert(fwrite(record_magic, 4, 1, db->file) == 1);
-    sha256_Update(&ctx, record_magic, 4);
+    assert(fwrite(record_magic, 8, 1, db->file) == 1);
+    sha256_Update(&ctx, record_magic, 8);
 
     /* write partial hash as body checksum&indicator (body start) */
     assert(fwrite(hash, db->hashlen, 1, db->file) == 1);
@@ -324,7 +314,7 @@ logdb_bool logdb_record_deser_from_file(logdb_record* rec, logdb_log_db *db, enu
     uint32_t len = 0;
     SHA256_CTX ctx = db->hashctx; /* prepare a copy of context that allows rollback */
     SHA256_CTX ctx_final;
-    uint8_t magic_buf[4];
+    uint8_t magic_buf[8];
     uint8_t hashcheck[SHA256_DIGEST_LENGTH];
     unsigned char check[SHA256_DIGEST_LENGTH];
 
@@ -335,12 +325,12 @@ logdb_bool logdb_record_deser_from_file(logdb_record* rec, logdb_log_db *db, enu
     *error = LOGDB_SUCCESS;
 
     /* read record magic */
-    if (fread(magic_buf, 4, 1, db->file) != 1)
+    if (fread(magic_buf, 8, 1, db->file) != 1)
     {
         /* very likely end of file reached */
         return false;
     }
-    sha256_Update(&ctx, magic_buf, 4);
+    sha256_Update(&ctx, magic_buf, 8);
 
     /* read start hash/magic per record */
     if (fread(hashcheck, db->hashlen, 1, db->file) != 1)
