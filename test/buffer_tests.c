@@ -24,4 +24,5 @@ void test_buffer()
     buffer_free(buf2);
 
     buf3 = buffer_copy(&buf0.p, max);
+    buffer_free(buf3);
 }
