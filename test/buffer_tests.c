@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include "limits.h"
 
 #include <logdb/buffer.h>
 
@@ -17,12 +18,13 @@ void test_buffer()
     struct buffer* buf2;
     struct buffer* buf3;
     
-    uint64_t max = -1;
+    uint64_t max = ULLONG_MAX;
     assert(buffer_equal(&buf0.p, &buf1.p) == 1);
 
     buf2 = buffer_copy(&buf0.p, buf0.len);
     buffer_free(buf2);
 
     buf3 = buffer_copy(&buf0.p, max);
-    buffer_free(buf3);
+    if (buf3)
+        buffer_free(buf3);
 }
