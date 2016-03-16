@@ -53,10 +53,10 @@
 extern "C" {
 #endif
 
-#include <logdb/logdb_file.h>
+#include <logdb/logdb_core.h>
 #include <logdb/logdb_rec.h>
-#include <logdb/logdb_memdb.h>
-#include <logdb/logdb_rbtree.h>
+#include <logdb/logdb_memdb_llist.h>
+#include <logdb/logdb_memdb_rbtree.h>
 
 #ifdef __cplusplus
 }

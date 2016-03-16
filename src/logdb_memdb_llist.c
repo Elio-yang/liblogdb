@@ -25,22 +25,57 @@
  */
 
 #include <logdb/logdb.h>
-#include <logdb/logdb_memdb.h>
+#include <logdb/logdb_memdb_llist.h>
 
 #include <assert.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
 
-void logdb_memdb_append(void* ctx, logdb_record *rec)
+logdb_llist_db* logdb_llist_db_new()
 {
-    logdb_log_db *db = (logdb_log_db *)ctx;
+    logdb_llist_db* handle = calloc(1, sizeof(logdb_llist_db));
+    handle->head = NULL;
+    return handle;
+}
+
+void logdb_llist_db_free(void *ctx)
+{
+    logdb_record *rec;
+    logdb_record *prev_rec;
+
+    logdb_llist_db *handle = (logdb_llist_db *)ctx;
+    if (!handle)
+        return;
+
+    /* free the internal database */
+    rec = handle->head;
+    while (rec)
+    {
+        prev_rec = rec->prev;
+        logdb_record_free(rec);
+        rec = prev_rec;
+    }
+
+    memset(handle, 0, sizeof(*handle));
+    free(handle);
+}
+
+void logdb_llistdb_init(logdb_log_db* db)
+{
+    logdb_llist_db* handle = logdb_llist_db_new();
+    db->cb_ctx = handle;
+}
+
+void logdb_llistdb_append(void* ctx, logdb_record *rec)
+{
+    logdb_llist_db *handle = (logdb_llist_db *)ctx;
     logdb_record *rec_dup;
     logdb_record *current_db_head;
 
-    if (rec->mode == RECORD_TYPE_ERASE && db->memdb_head)
+    if (rec->mode == RECORD_TYPE_ERASE && handle->head)
     {
-        db->memdb_head = logdb_record_rm_desc(db->memdb_head, rec->key);
+        handle->head = logdb_record_rm_desc(handle->head, rec->key);
         return;
     }
 
@@ -48,7 +83,7 @@ void logdb_memdb_append(void* ctx, logdb_record *rec)
        copy record and append to internal mem db (linked list)
     */
     rec_dup = logdb_record_copy(rec);
-    current_db_head = db->memdb_head;
+    current_db_head = handle->head;
 
     /* if the list is NOT empty, link the current head */
     if (current_db_head != NULL)
@@ -58,32 +93,19 @@ void logdb_memdb_append(void* ctx, logdb_record *rec)
     rec_dup->prev = current_db_head;
 
     /* set the current head */
-    db->memdb_head = rec_dup;
+    handle->head = rec_dup;
 
     logdb_record_rm_desc(current_db_head, rec_dup->key);
 }
 
-cstring * logdb_memdb_find(logdb_log_db* db, struct buffer *key)
+cstring * logdb_llistdb_find(logdb_log_db* db, struct buffer *key)
 {
-    return logdb_record_find_desc(db->memdb_head, key);
+    logdb_llist_db *handle = (logdb_llist_db *)db->cb_ctx;
+    return logdb_record_find_desc(handle->head, key);
 }
 
-size_t logdb_memdb_size(logdb_log_db* db)
+size_t logdb_llistdb_size(logdb_log_db* db)
 {
-    return logdb_record_height(db->memdb_head);
-}
-
-void logdb_memdb_cleanup(void* ctx)
-{
-    logdb_log_db *db = (logdb_log_db *)ctx;
-    logdb_record *rec;
-
-    /* free the internal database */
-    rec = db->memdb_head;
-    while (rec)
-    {
-        logdb_record *prev_rec = rec->prev;
-        logdb_record_free(rec);
-        rec = prev_rec;
-    }
+    logdb_llist_db *handle = (logdb_llist_db *)db->cb_ctx;
+    return logdb_record_height(handle->head);
 }

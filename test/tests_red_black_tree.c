@@ -1,3 +1,4 @@
+#include <logdb/logdb_base.h>
 #include <logdb/red_black_tree.h>
 
 #include <string.h>
@@ -25,9 +26,8 @@ void IntPrint(const void* a) {
 }
 
 void InfoPrint(void* a) {
-  ;
+  UNUSED(a);
 }
-
 
 
 int test_red_black_tree() {

@@ -6,10 +6,10 @@ lib_LTLIBRARIES = liblogdb.la
 include_HEADERS = \
     include/logdb/logdb.h \
     include/logdb/logdb_base.h \
-    include/logdb/logdb_file.h \
+    include/logdb/logdb_core.h \
     include/logdb/logdb_rec.h \
-    include/logdb/logdb_memdb.h \
-    include/logdb/logdb_rbtree.h \
+    include/logdb/logdb_memdb_llist.h \
+    include/logdb/logdb_memdb_rbtree.h \
 	include/logdb/cstr.h \
     include/logdb/serialize.h \
     include/logdb/buffer.h \
@@ -29,9 +29,9 @@ liblogdb_la_SOURCES = \
 	src/buffer.c \
 	src/cstr.c \
 	src/serialize.c \
-    src/logdb_file.c \
-    src/logdb_memdb.c \
-    src/logdb_rbtree.c \
+    src/logdb_core.c \
+    src/logdb_memdb_llist.c \
+    src/logdb_memdb_rbtree.c \
     src/logdb_rec.c \
     src/red_black_tree.c
 

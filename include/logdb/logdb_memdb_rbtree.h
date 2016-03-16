@@ -25,23 +25,18 @@
  */
 
 /*
- A simple linkes list memory DB,
- extremly slow and only for callback demo purposes
- 
- If you are going to write a memory mapper for logdb, use a red black tree
- http://web.mit.edu/~emin/Desktop/ref_to_emin/www.old/source_code/red_black_tree/index.html
- 
- Logdb does currently not provide an efficient memory map
+ Memory mapping with a red black tree
 */
 
-#ifndef __LIBLOGDB_MEMDB_H__
-#define __LIBLOGDB_MEMDB_H__
+#ifndef __LIBLOGDB_RBTREE_H__
+#define __LIBLOGDB_RBTREE_H__
 
 #include <logdb/buffer.h>
 #include <logdb/cstr.h>
 #include <logdb/logdb_base.h>
 #include <logdb/logdb_rec.h>
-#include <logdb/logdb_file.h>
+#include <logdb/logdb_core.h>
+#include <logdb/red_black_tree.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,16 +45,37 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 
-/** appends record to the mem db */
-LIBLOGDB_API void logdb_memdb_append(void* ctx, logdb_record *rec);
+typedef struct logdb_rbtree_db_ {
+    struct rb_red_blk_tree *tree;
+} logdb_rbtree_db;
 
-LIBLOGDB_API cstring * logdb_memdb_find(logdb_log_db* db, struct buffer *key);
+logdb_rbtree_db* logdb_rbtree_db_new();
+void logdb_rbtree_free(void *ctx);
 
-LIBLOGDB_API size_t logdb_memdb_size(logdb_log_db* db);
+/** appends record to the rbtree */
+LIBLOGDB_API void logdb_rbtree_init(logdb_log_db* db);
 
-LIBLOGDB_API void logdb_memdb_cleanup(void* ctx);
+/** appends record to the rbtree */
+LIBLOGDB_API void logdb_rbtree_append(void* ctx, logdb_record *rec);
+
+/** find a record by key */
+LIBLOGDB_API cstring * logdb_rbtree_find(logdb_log_db* db, struct buffer *key);
+
+/** count all red black tree nodes */
+LIBLOGDB_API size_t logdb_rbtree_size(logdb_log_db* db);
+
+/* static interface */
+static logdb_memmapper logdb_rbtree_mapper = {
+    logdb_rbtree_append,
+    logdb_rbtree_init,
+    logdb_rbtree_free,
+    logdb_rbtree_find,
+    logdb_rbtree_size
+};
+
+    
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __LIBLOGDB_MEMDB_H__ */
+#endif /* __LIBLOGDB_RBTREE_H__ */

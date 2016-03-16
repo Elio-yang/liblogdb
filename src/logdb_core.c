@@ -25,8 +25,8 @@
 */
 
 #include <logdb/logdb.h>
-#include <logdb/logdb_memdb.h>
-#include <logdb/logdb_rbtree.h>
+#include <logdb/logdb_memdb_llist.h>
+#include <logdb/logdb_memdb_rbtree.h>
 #include <logdb/serialize.h>
 
 #include <assert.h>
@@ -46,8 +46,7 @@ logdb_log_db* logdb_new_internal()
 {
     logdb_log_db* db;
     db = calloc(1, sizeof(*db));
-    db->cb_ctx = NULL;
-    db->memdb_head = NULL;
+    db->mem_mapper = NULL;
     db->cache_head = NULL;
     db->hashlen = kLOGDB_DEFAULT_HASH_LEN;
     db->version = kLOGDB_DEFAULT_VERSION;
@@ -63,7 +62,7 @@ logdb_log_db* logdb_new()
 
     /* use a linked list for default memory mapping */
     /* Will be slow */
-    logdb_set_mem_cb(db, db, logdb_memdb_append, logdb_memdb_cleanup);
+    logdb_set_memmapper(db, &logdb_llistdb_mapper);
 
     return db;
 }
@@ -73,10 +72,15 @@ logdb_log_db* logdb_rbtree_new()
     logdb_log_db* db = logdb_new_internal();
 
     /* use a red black tree as default memory mapping */
-    logdb_rbtree_db* handle = logdb_rbtree_db_new();
-    logdb_set_mem_cb(db, handle, logdb_rbtree_append, logdb_rbtree_free);
-
+    logdb_set_memmapper(db, &logdb_rbtree_mapper);
     return db;
+}
+
+void logdb_set_memmapper(logdb_log_db* db, logdb_memmapper *mapper)
+{
+    db->mem_mapper = mapper;
+    if (db->mem_mapper && db->mem_mapper->init_cb)
+        db->mem_mapper->init_cb(db);
 }
 
 void logdb_free_cachelist(logdb_log_db* db)
@@ -106,18 +110,10 @@ void logdb_free(logdb_log_db* db)
     logdb_free_cachelist(db);
 
     /* allow the memory mapper to do a cleanup */
-    if (db->map_cleanup_cb)
-        db->map_cleanup_cb(db->cb_ctx);
+    if (db->mem_mapper && db->mem_mapper->cleanup_cb)
+        db->mem_mapper->cleanup_cb(db->cb_ctx);
 
     free(db);
-}
-
-void logdb_set_mem_cb(logdb_log_db* db, void *ctx, void (*new_cb)(void*, logdb_record *),  void (*new_cleanup_cb)(void*))
-{
-    /* set the context passed in the callback, sender must take care about lifetime of object */
-    db->cb_ctx = ctx;
-    db->mem_map_cb = new_cb;
-    db->map_cleanup_cb = new_cleanup_cb;
 }
 
 logdb_bool logdb_load(logdb_log_db* handle, const char *file_path, logdb_bool create, enum logdb_error *error)
@@ -185,8 +181,8 @@ logdb_bool logdb_load(logdb_log_db* handle, const char *file_path, logdb_bool cr
            pass the record together with the context to
            this function.
          */
-        if (handle->mem_map_cb != NULL)
-            handle->mem_map_cb(handle->cb_ctx, rec);
+        if (handle->mem_mapper && handle->mem_mapper->append_cb)
+            handle->mem_mapper->append_cb(handle->cb_ctx, rec);
     }
     logdb_record_free(rec);
 
@@ -272,13 +268,29 @@ void logdb_append(logdb_log_db* db, struct buffer *key, struct buffer *val)
     db->cache_head = rec;
 
     /* update mem mapped database */
-    if (db->mem_map_cb)
-        db->mem_map_cb(db->cb_ctx, rec);
+    if (db->mem_mapper && db->mem_mapper->append_cb)
+        db->mem_mapper->append_cb(db->cb_ctx, rec);
 }
 
 cstring * logdb_find_cache(logdb_log_db* db, struct buffer *key)
 {
     return logdb_record_find_desc(db->cache_head, key);
+}
+
+cstring * logdb_find(logdb_log_db* db, struct buffer *key)
+{
+    if (db->mem_mapper && db->mem_mapper->find_cb)
+        return db->mem_mapper->find_cb(db, key);
+
+    return NULL;
+}
+
+size_t logdb_count_keys(logdb_log_db* db)
+{
+    if (db->mem_mapper && db->mem_mapper->size_cb)
+        return db->mem_mapper->size_cb(db);
+
+    return 0;
 }
 
 size_t logdb_cache_size(logdb_log_db* db)

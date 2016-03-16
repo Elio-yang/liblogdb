@@ -30,6 +30,8 @@
 #ifndef __LIBLOGDB_BASE_H__
 #define __LIBLOGDB_BASE_H__
 
+#define UNUSED(x) (void)(x)
+
 typedef uint8_t logdb_bool; /*!serialize, c/c++ save bool*/
 
 #ifndef true

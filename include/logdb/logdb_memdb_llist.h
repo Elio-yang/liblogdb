@@ -25,18 +25,23 @@
  */
 
 /*
- Memory mapping with a red black tree
+ A simple linkes list memory DB,
+ extremly slow and only for callback demo purposes
+ 
+ If you are going to write a memory mapper for logdb, use a red black tree
+ http://web.mit.edu/~emin/Desktop/ref_to_emin/www.old/source_code/red_black_tree/index.html
+ 
+ Logdb does currently not provide an efficient memory map
 */
 
-#ifndef __LIBLOGDB_RBTREE_H__
-#define __LIBLOGDB_RBTREE_H__
+#ifndef __LIBLOGDB_MEMDB_H__
+#define __LIBLOGDB_MEMDB_H__
 
 #include <logdb/buffer.h>
 #include <logdb/cstr.h>
 #include <logdb/logdb_base.h>
 #include <logdb/logdb_rec.h>
-#include <logdb/logdb_file.h>
-#include <logdb/red_black_tree.h>
+#include <logdb/logdb_core.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,24 +50,35 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 
-typedef struct logdb_rbtree_db_ {
-    struct rb_red_blk_tree *tree;
-} logdb_rbtree_db;
+typedef struct logdb_llist_db_ {
+    logdb_record *head;
+} logdb_llist_db;
 
-logdb_rbtree_db* logdb_rbtree_db_new();
-void logdb_rbtree_free(void *ctx);
+logdb_llist_db* logdb_llist_db_new();
+void logdb_llist_db_free(void *ctx);
 
-/** appends record to the rbtree */
-LIBLOGDB_API void logdb_rbtree_append(void* ctx, logdb_record *rec);
+LIBLOGDB_API void logdb_llistdb_init(logdb_log_db* db);
 
-/** find a record by key */
-LIBLOGDB_API cstring * logdb_rbtree_find(logdb_log_db* db, struct buffer *key);
+/** appends record to the mem db */
+LIBLOGDB_API void logdb_llistdb_append(void* ctx, logdb_record *rec);
 
-/** count all red black tree nodes */
-LIBLOGDB_API size_t logdb_rbtree_size(logdb_log_db* db);
+LIBLOGDB_API cstring * logdb_llistdb_find(logdb_log_db* db, struct buffer *key);
+
+LIBLOGDB_API size_t logdb_llistdb_size(logdb_log_db* db);
+
+LIBLOGDB_API void logdb_llistdb_cleanup(void* ctx);
+
+/* static interface */
+static logdb_memmapper logdb_llistdb_mapper = {
+    logdb_llistdb_append,
+    logdb_llistdb_init,
+    logdb_llist_db_free,
+    logdb_llistdb_find,
+    logdb_llistdb_size
+};
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __LIBLOGDB_RBTREE_H__ */
+#endif /* __LIBLOGDB_MEMDB_H__ */

@@ -50,19 +50,29 @@ enum logdb_error {
     LOGDB_ERROR_FILE_ALREADY_OPEN = 600
 };
 
+typedef struct logdb_memmapper_ logdb_memmapper; /* forware declaration */
+
 /** logdb handle */
 typedef struct logdb_log_db {
     FILE *file;
-    void (*mem_map_cb)(void*, logdb_record *); /* callback for memory mapping */
-    void (*map_cleanup_cb)(void*); /* callback for cleanup/shutdown */
-    void *cb_ctx; /* callback context */
-    logdb_record *memdb_head; /* optional non-schematic memory database */
+    logdb_memmapper *mem_mapper;
+    void *cb_ctx;
     logdb_record *cache_head;
     SHA256_CTX hashctx;
     uint8_t hashlen;
     uint32_t version;
     uint32_t support_flags;
 } logdb_log_db;
+
+/* function pointer interface for flexible memory mapping functions*/
+struct logdb_memmapper_
+{
+    void (*append_cb)(void*, logdb_record *); /* callback called when appending (incl. deletes) a record */
+    void (*init_cb)(logdb_log_db*); /* callback called when initializing the database */
+    void (*cleanup_cb)(void*); /* callback called when database gets destroyed */
+    cstring* (*find_cb)(logdb_log_db*, struct buffer*); /* callback for finding a record with given key */
+    size_t (*size_cb)(logdb_log_db*); /* callback which expect the get back the total amount of keys in the database */
+};
 
 /* DB HANDLING
 ////////////////////////////////// */
@@ -80,7 +90,7 @@ LIBLOGDB_API void logdb_free(logdb_log_db* db);
     the callback will be called when a record will be loaded from disk, appended, deleted 
     this will allow to do a application specific memory mapping
  */
-LIBLOGDB_API void logdb_set_mem_cb(logdb_log_db* db, void *ctx, void (*new_cb)(void*, logdb_record *),  void (*new_cleanup_cb)(void*));
+LIBLOGDB_API void logdb_set_memmapper(logdb_log_db* db, logdb_memmapper *mapper);
 
 /** loads given file as database (memory mapping) */
 LIBLOGDB_API logdb_bool logdb_load(logdb_log_db* handle, const char *file_path, logdb_bool create, enum logdb_error *error);
@@ -96,11 +106,11 @@ LIBLOGDB_API void logdb_append(logdb_log_db* db, struct buffer *key, struct buff
 
 /** find and get value from key */
 LIBLOGDB_API cstring * logdb_find_cache(logdb_log_db* db, struct buffer *key);
-LIBLOGDB_API cstring * logdb_find_db(logdb_log_db* db, struct buffer *key);
+LIBLOGDB_API cstring * logdb_find(logdb_log_db* db, struct buffer *key);
 
 /** get the amount of in-memory-records */
 LIBLOGDB_API size_t logdb_cache_size(logdb_log_db* db);
-LIBLOGDB_API size_t logdb_db_size(logdb_log_db* db);
+LIBLOGDB_API size_t logdb_count_keys(logdb_log_db* db);
 
 /** writes down single record, internal */
 void logdb_write_record(logdb_log_db* db, logdb_record *rec);

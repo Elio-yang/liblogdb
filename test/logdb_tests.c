@@ -21,7 +21,7 @@ static const char *key1str = "ALorem ipsum dolor sit amet, consectetur adipisici
 
 static const char *value1str = "BLorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
 
-void test_logdb(logdb_log_db* (*new_func)(), cstring* (*find_func)(logdb_log_db*, struct buffer *), size_t (*count_func)(logdb_log_db*) )
+void test_logdb(logdb_log_db* (*new_func)())
 {
     logdb_log_db *db;
     enum logdb_error error = 0;
@@ -75,18 +75,12 @@ void test_logdb(logdb_log_db* (*new_func)(), cstring* (*find_func)(logdb_log_db*
 
     db = new_func();
     u_assert_int_eq(logdb_load(db, dbtmpfile, false, NULL), true);
-
-    if (new_func == logdb_new)
-    {
-        /* do some internal memdb related tests */
-        u_assert_int_eq(db->memdb_head->key->len, strlen(key1str));
-        u_assert_int_eq(strcmp(db->memdb_head->key->str, key1str), 0);
-        u_assert_int_eq(db->memdb_head->value->len, strlen(value1str));
-        u_assert_int_eq(strcmp(db->memdb_head->value->str, value1str), 0);
-
-        u_assert_int_eq(memcmp(db->memdb_head->prev->key->str, key.p, key.len), 0);
-        u_assert_int_eq(memcmp(db->memdb_head->prev->value->str, value.p, value.len), 0);
-    }
+    u_assert_int_eq(logdb_count_keys(db), 2);
+    
+    value_test = logdb_find(db, &key1);
+    u_assert_int_eq(strcmp(value_test->str, value1str), 0);
+    value_test = logdb_find(db, &key);
+    u_assert_int_eq(memcmp(value_test->str, value.p, value.len), 0);
     logdb_free(db);
 
     db = new_func();
@@ -102,16 +96,10 @@ void test_logdb(logdb_log_db* (*new_func)(), cstring* (*find_func)(logdb_log_db*
     db = new_func();
     u_assert_int_eq(logdb_load(db, dbtmpfile, false, NULL), true);
 
-    if (new_func == logdb_new)
-    {
-        u_assert_int_eq(memcmp(db->memdb_head->key->str, key2.p, key2.len), 0);
-        u_assert_int_eq(db->memdb_head->value->len, value2.len);
-        u_assert_int_eq(memcmp(db->memdb_head->value->str, value2.p, value2.len), 0);
-
-        /* check if oldest key/value still present */
-        u_assert_int_eq(memcmp(db->memdb_head->prev->prev->key->str, key.p, key.len), 0);
-        u_assert_int_eq(memcmp(db->memdb_head->prev->prev->value->str, value.p, value.len), 0);
-    }
+    value_test = logdb_find(db, &key2);
+    u_assert_int_eq(memcmp(value_test->str, value2.p, value2.len), 0);
+    value_test = logdb_find(db, &key);
+    u_assert_int_eq(memcmp(value_test->str, value.p, value.len), 0);
 
     /* delete a record */
     logdb_delete(db, &key2);
@@ -122,16 +110,16 @@ void test_logdb(logdb_log_db* (*new_func)(), cstring* (*find_func)(logdb_log_db*
     db = new_func();
     u_assert_int_eq(logdb_load(db, dbtmpfile, false, NULL), true);
 
-    value_test = find_func(db, &key);
+    value_test = logdb_find(db, &key);
     u_assert_int_eq(memcmp(value_test->str, value.p, value.len), 0);
 
-    value_test = find_func(db, &key2);
+    value_test = logdb_find(db, &key2);
     u_assert_int_eq((int)value_test, 0); /* should be null */
 
     /* overwrite a key */
     logdb_append(db, &key, &value0_new);
 
-    value_test = find_func(db, &key);
+    value_test = logdb_find(db, &key);
     u_assert_int_eq(memcmp(value_test->str, value0_new.p, value0_new.len), 0);
 
     logdb_flush(db);
@@ -139,7 +127,7 @@ void test_logdb(logdb_log_db* (*new_func)(), cstring* (*find_func)(logdb_log_db*
 
     db = new_func();
     u_assert_int_eq(logdb_load(db, dbtmpfile, false, NULL), true);
-    value_test = find_func(db, &key);
+    value_test = logdb_find(db, &key);
     u_assert_int_eq(memcmp(value_test->str, value0_new.p, value0_new.len), 0);
 
     logdb_flush(db);
@@ -230,7 +218,7 @@ void test_logdb(logdb_log_db* (*new_func)(), cstring* (*find_func)(logdb_log_db*
         logdb_append(db, &smp_key, &smp_value);
     }
 
-    u_assert_int_eq(count_func(db), (sizeof(sampledata) / sizeof(sampledata[0])));
+    u_assert_int_eq(logdb_count_keys(db), (sizeof(sampledata) / sizeof(sampledata[0])));
 
     /* check all records */
     for (i = 0; i < (sizeof(sampledata) / sizeof(sampledata[0])); i++) {
@@ -242,7 +230,7 @@ void test_logdb(logdb_log_db* (*new_func)(), cstring* (*find_func)(logdb_log_db*
 
         smp_key.p = hashbin;
         smp_key.len = outlen;
-        outtest = find_func(db, &smp_key);
+        outtest = logdb_find(db, &smp_key);
 
         outlen = sizeof(tx->hextx) / 2;
         utils_hex_to_bin(tx->hextx, txbin, strlen(tx->hextx), &outlen);
@@ -256,7 +244,7 @@ void test_logdb(logdb_log_db* (*new_func)(), cstring* (*find_func)(logdb_log_db*
     db = new_func();
     error = 0;
     u_assert_int_eq(logdb_load(db, dbtmpfile, false, &error), true);
-    u_assert_int_eq(count_func(db), (sizeof(sampledata) / sizeof(sampledata[0])));
+    u_assert_int_eq(logdb_count_keys(db), (sizeof(sampledata) / sizeof(sampledata[0])));
 
     /* check all records */
     for (i = 0; i < (sizeof(sampledata) / sizeof(sampledata[0])); i++) {
@@ -273,7 +261,7 @@ void test_logdb(logdb_log_db* (*new_func)(), cstring* (*find_func)(logdb_log_db*
 
         smp_key.p = hashbin;
         smp_key.len = outlen;
-        outtest = find_func(db, &smp_key);
+        outtest = logdb_find(db, &smp_key);
 
         outlen = strlen(tx->hextx) / 2;
         utils_hex_to_bin(tx->hextx, txbin, strlen(tx->hextx), &outlen);
@@ -302,7 +290,7 @@ void test_logdb(logdb_log_db* (*new_func)(), cstring* (*find_func)(logdb_log_db*
         smp_key.len = outlen;
         logdb_delete(db, &smp_key);
     }
-    u_assert_int_eq(count_func(db), 0);
+    u_assert_int_eq(logdb_count_keys(db), 0);
 
     logdb_flush(db);
     logdb_free(db);
@@ -311,7 +299,7 @@ void test_logdb(logdb_log_db* (*new_func)(), cstring* (*find_func)(logdb_log_db*
     error = 0;
     u_assert_int_eq(logdb_load(db, dbtmpfile, false, &error), true);
     u_assert_int_eq(error, LOGDB_SUCCESS);
-    u_assert_int_eq(count_func(db), 0);
+    u_assert_int_eq(logdb_count_keys(db), 0);
 
     for (i = 0; i < (sizeof(sampledata) / sizeof(sampledata[0])); i++) {
         const struct txtest *tx = &sampledata[i];
@@ -339,7 +327,7 @@ void test_logdb(logdb_log_db* (*new_func)(), cstring* (*find_func)(logdb_log_db*
     error = 0;
     u_assert_int_eq(logdb_load(db, dbtmpfile, false, &error), true);
     u_assert_int_eq(error, LOGDB_SUCCESS);
-    u_assert_int_eq(count_func(db), (sizeof(sampledata) / sizeof(sampledata[0])));
+    u_assert_int_eq(logdb_count_keys(db), (sizeof(sampledata) / sizeof(sampledata[0])));
 
     logdb_flush(db);
     logdb_free(db);
@@ -348,7 +336,7 @@ void test_logdb(logdb_log_db* (*new_func)(), cstring* (*find_func)(logdb_log_db*
     error = 0;
     u_assert_int_eq(logdb_load(db, dbtmpfile, false, &error), true);
     u_assert_int_eq(error, LOGDB_SUCCESS);
-    u_assert_int_eq(count_func(db), (sizeof(sampledata) / sizeof(sampledata[0])));
+    u_assert_int_eq(logdb_count_keys(db), (sizeof(sampledata) / sizeof(sampledata[0])));
 
     for (i = 0; i < (sizeof(sampledata) / sizeof(sampledata[0])); i++) {
         const struct txtest *tx = &sampledata[i];
@@ -372,12 +360,13 @@ void test_logdb(logdb_log_db* (*new_func)(), cstring* (*find_func)(logdb_log_db*
     logdb_flush(db);
     logdb_free(db);
 }
+
 void test_logdb_rbtree()
 {
-    test_logdb(logdb_rbtree_new, logdb_rbtree_find, logdb_rbtree_size);
+    test_logdb(logdb_rbtree_new);
 }
 
 void test_logdb_memdb()
 {
-    test_logdb(logdb_new, logdb_memdb_find, logdb_memdb_size);
+    test_logdb(logdb_new);
 }

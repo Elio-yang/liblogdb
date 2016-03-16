@@ -25,7 +25,7 @@
 */
 
 #include <logdb/logdb.h>
-#include <logdb/logdb_rbtree.h>
+#include <logdb/logdb_memdb_rbtree.h>
 #include <logdb/logdb_rec.h>
 
 #include <assert.h>
@@ -35,7 +35,7 @@
 
 void logdb_rbtree_free_key(void* a) {
     /* key needs no releasing, value contains key */
-    ;
+    UNUSED(a);
 }
 
 void logdb_rbtree_free_value(void *a){
@@ -53,7 +53,7 @@ void logdb_rbtree_IntPrint(const void* a) {
 }
 
 void logdb_rbtree_InfoPrint(void* a) {
-    ;
+    UNUSED(a);
 }
 
 logdb_rbtree_db* logdb_rbtree_db_new()
@@ -74,6 +74,12 @@ void logdb_rbtree_free(void *ctx)
 
     memset(handle, 0, sizeof(*handle));
     free(handle);
+}
+
+void logdb_rbtree_init(logdb_log_db* db)
+{
+    logdb_rbtree_db* handle = logdb_rbtree_db_new();
+    db->cb_ctx = handle;
 }
 
 void logdb_rbtree_append(void* ctx, logdb_record *rec)
