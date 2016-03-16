@@ -23,8 +23,4 @@ void test_buffer()
 
     buf2 = buffer_copy(&buf0.p, buf0.len);
     buffer_free(buf2);
-
-    buf3 = buffer_copy(&buf0.p, max);
-    if (buf3)
-        buffer_free(buf3);
 }
