@@ -25,11 +25,6 @@ void ser_u32(cstring* s, uint32_t v_)
     cstr_append_buf(s, &v, sizeof(v));
 }
 
-void ser_i32(cstring* s, int32_t v_)
-{
-    ser_u32(s, (uint32_t) v_);
-}
-
 void ser_s32(cstring* s, int32_t v_)
 {
     ser_u32(s, (uint32_t)v_);
@@ -134,7 +129,7 @@ int deser_u16(uint16_t* vo, struct const_buffer* buf)
     return true;
 }
 
-int deser_i32(int32_t* vo, struct const_buffer* buf)
+int deser_s32(int32_t* vo, struct const_buffer* buf)
 {
     int32_t v;
 

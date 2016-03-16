@@ -43,7 +43,6 @@ extern "C" {
 LIBLOGDB_API void ser_bytes(cstring* s, const void* p, size_t len);
 LIBLOGDB_API void ser_u16(cstring* s, uint16_t v_);
 LIBLOGDB_API void ser_u32(cstring* s, uint32_t v_);
-LIBLOGDB_API void ser_i32(cstring* s, int32_t v_);
 LIBLOGDB_API void ser_u64(cstring* s, uint64_t v_);
 LIBLOGDB_API void ser_u256(cstring* s, const unsigned char* v_);
 LIBLOGDB_API void ser_varlen(cstring* s, uint32_t vlen);
@@ -59,6 +58,7 @@ LIBLOGDB_API int deser_bytes(void* po, struct const_buffer* buf, size_t len);
 LIBLOGDB_API int deser_u16(uint16_t* vo, struct const_buffer* buf);
 LIBLOGDB_API int deser_u32(uint32_t* vo, struct const_buffer* buf);
 LIBLOGDB_API int deser_i32(int32_t* vo, struct const_buffer* buf);
+LIBLOGDB_API int deser_s32(int32_t* vo, struct const_buffer* buf);
 LIBLOGDB_API int deser_u64(uint64_t* vo, struct const_buffer* buf);
 LIBLOGDB_API int deser_u256(uint8_t* vo, struct const_buffer* buf);
 
