@@ -3,64 +3,6 @@
 #include <stdlib.h>
 
 
-stk_stack * StackCreate() {
-    stk_stack * newStack;
-
-    newStack=(stk_stack *) safe_malloc(sizeof(stk_stack));
-    newStack->top=newStack->tail=NULL;
-    return(newStack);
-}
-
-void StackPush(stk_stack * theStack, DATA_TYPE newInfoPointer) {
-    stk_stack_node * newNode;
-
-    if(!theStack->top) {
-        newNode=(stk_stack_node *) safe_malloc(sizeof(stk_stack_node));
-        newNode->info=newInfoPointer;
-        newNode->next=theStack->top;
-        theStack->top=newNode;
-        theStack->tail=newNode;
-    } else {
-        newNode=(stk_stack_node *) safe_malloc(sizeof(stk_stack_node));
-        newNode->info=newInfoPointer;
-        newNode->next=theStack->top;
-        theStack->top=newNode;
-    }
-
-}
-
-DATA_TYPE StackPop(stk_stack * theStack) {
-    DATA_TYPE popInfo;
-    stk_stack_node * oldNode;
-
-    if(theStack->top) {
-        popInfo=theStack->top->info;
-        oldNode=theStack->top;
-        theStack->top=theStack->top->next;
-        free(oldNode);
-        if (!theStack->top) theStack->tail=NULL;
-    } else {
-        popInfo=NULL;
-    }
-    return(popInfo);
-}
-
-void StackDestroy(stk_stack * theStack,void DestFunc(void * a)) {
-    stk_stack_node * x=theStack->top;
-    stk_stack_node * y;
-
-    if(theStack) {
-        while(x) {
-            y=x->next;
-            DestFunc(x->info);
-            free(x);
-            x=y;
-        }
-        free(theStack);
-    }
-} 
-
-
 /***********************************************************************/
 /*  FUNCTION:  RBTreeCreate */
 /**/
@@ -660,40 +602,6 @@ void RBDelete(rb_red_blk_tree* tree, rb_red_blk_node* z){
     if (!(y->red)) RBDeleteFixUp(tree,x);
     free(y);
   }
-}
-
-
-/***********************************************************************/
-/*  FUNCTION:  RBDEnumerate */
-/**/
-/*    INPUTS:  tree is the tree to look for keys >= low */
-/*             and <= high with respect to the Compare function */
-/**/
-/*    OUTPUT:  stack containing pointers to the nodes between [low,high] */
-/**/
-/*    Modifies Input: none */
-/***********************************************************************/
-
-stk_stack* RBEnumerate(rb_red_blk_tree* tree, void* low, void* high) {
-  stk_stack* enumResultStack;
-  rb_red_blk_node* nil=tree->nil;
-  rb_red_blk_node* x=tree->root->left;
-  rb_red_blk_node* lastBest=nil;
-
-  enumResultStack=StackCreate();
-  while(nil != x) {
-    if ( 1 == (tree->Compare(x->key,high)) ) { /* x->key > high */
-      x=x->left;
-    } else {
-      lastBest=x;
-      x=x->right;
-    }
-  }
-  while ( (lastBest != nil) && (1 != tree->Compare(low,lastBest->key))) {
-    StackPush(enumResultStack,lastBest);
-    lastBest=TreePredecessor(tree,lastBest);
-  }
-  return(enumResultStack);
 }
 
 size_t rbtree_count_intern(rb_red_blk_tree* tree, rb_red_blk_node* x) {
