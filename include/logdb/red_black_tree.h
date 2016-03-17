@@ -57,8 +57,10 @@ typedef struct rb_red_blk_tree {
   /*  node which should always be black but has aribtrary children and */
   /*  parent and no key or info.  The point of using these sentinels is so */
   /*  that the root and nil nodes do not require special cases in the code */
-  rb_red_blk_node* root;             
-  rb_red_blk_node* nil;              
+  rb_red_blk_node* root;
+  rb_red_blk_node* nil;
+  rb_red_blk_node* it; /* iterator */
+  int it_node;
 } rb_red_blk_tree;
 
 rb_red_blk_tree* RBTreeCreate(int  (*CompFunc)(const void*, const void*),
@@ -84,5 +86,9 @@ void StackPush(stk_stack * theStack, DATA_TYPE newInfoPointer);
 void * StackPop(stk_stack * theStack);
 int StackNotEmpty(stk_stack *);
 void StackDestroy(stk_stack * theStack,void DestFunc(void * a));
+
+void rbtree_it_reset(rb_red_blk_tree* tree);
+rb_red_blk_node* rbtree_enumerate_next(rb_red_blk_tree* tree);
+
 
 #endif /* __LIBLOGDB_RED_BLACK_TREE_H__ */
