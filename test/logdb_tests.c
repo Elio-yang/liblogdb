@@ -342,8 +342,6 @@ void test_logdb(logdb_log_db* (*new_func)())
     u_assert_int_eq(error, LOGDB_SUCCESS);
     u_assert_int_eq(logdb_count_keys(db), (sizeof(sampledata) / sizeof(sampledata[0])));
 
-    void *ptr;
-    int test = (ptr = new_func);
     if(new_func == logdb_rbtree_new)
     {
         logdb_rbtree_db* handle = (logdb_rbtree_db *)db->cb_ctx;
@@ -383,6 +381,12 @@ void test_logdb(logdb_log_db* (*new_func)())
         logdb_append(db, &smp_key, &smp_value);
     }
 
+    logdb_flush(db);
+    logdb_free(db);
+
+    /* test switch mem mapper after initialitaion. */
+    db = logdb_new();
+    logdb_set_memmapper(db, &logdb_rbtree_mapper, NULL);
     logdb_flush(db);
     logdb_free(db);
 }
