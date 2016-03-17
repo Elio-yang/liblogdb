@@ -37,6 +37,7 @@ rb_red_blk_tree* RBTreeCreate( int (*CompFunc) (const void*,const void*),
   newTree->PrintKey= PrintFunc;
   newTree->PrintInfo= PrintInfo;
   newTree->info_destroy_callback = info_destroy_callback;
+  newTree->it = NULL;
 
   /*  see the comment in the rb_red_blk_tree structure in red_black_tree.h */
   /*  for information on nil and root */
@@ -616,4 +617,30 @@ size_t rbtree_count_intern(rb_red_blk_tree* tree, rb_red_blk_node* x) {
 
 size_t rbtree_count(rb_red_blk_tree* tree) {
     return rbtree_count_intern(tree, tree->root->left);
+}
+
+void rbtree_it_reset(rb_red_blk_tree* tree)
+{
+    tree->it = NULL;
+}
+
+rb_red_blk_node* rbtree_enumerate_next(rb_red_blk_tree* tree)
+{
+    rb_red_blk_node* nil=tree->nil;
+
+    if (tree->it == NULL)
+        tree->it = tree->root;
+
+    if (tree->it != nil)
+    {
+        tree->it=TreePredecessor(tree,tree->it);
+    }
+    if (tree->it == nil)
+    {
+        rbtree_it_reset(tree);
+        /* end enumeration */
+        return NULL;
+    }
+
+    return tree->it;
 }

@@ -1,6 +1,8 @@
 #include <logdb/logdb_base.h>
 #include <logdb/red_black_tree.h>
 
+#include "utest.h"
+
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -30,7 +32,7 @@ void InfoPrint(void* a) {
 }
 
 
-int test_red_black_tree() {
+void test_red_black_tree() {
     char *akey;
     char *avalue;
     char *akey2;
@@ -38,6 +40,7 @@ int test_red_black_tree() {
     rb_red_blk_node* newNode;
     rb_red_blk_node* newNode2;
     rb_red_blk_tree* tree;
+    size_t size;
 
     tree=RBTreeCreate(IntComp,free_key,free_value,IntPrint,InfoPrint);
 
@@ -59,10 +62,25 @@ int test_red_black_tree() {
     newNode = TreeSuccessor(tree,newNode);
     newNode = TreePredecessor(tree,newNode);
 
+    size = rbtree_count(tree);
+    while((newNode2 = rbtree_enumerate_next(tree)))
+    {
+        size--;
+    }
+    /* test reset */
+    while((newNode2 = rbtree_enumerate_next(tree)))
+    {
+        size++;
+    }
+    while((newNode2 = rbtree_enumerate_next(tree)))
+    {
+        size--;
+    }
+
+    u_assert_int_eq(size, 0);
+
     RBDelete(tree, newNode);
 
     RBTreePrint(tree);
     RBTreeDestroy(tree);
-
-    return 1;
 }

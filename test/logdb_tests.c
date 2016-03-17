@@ -46,6 +46,10 @@ void test_logdb(logdb_log_db* (*new_func)())
     char *wrk_buf;
     FILE *f;
     unsigned int i;
+    char bufs[300][65];
+    rb_red_blk_node *nodetest;
+    unsigned int cnt = 0;
+    logdb_record* rec;
 
     value2.p = testbin;
     value2.len = 4;
@@ -337,6 +341,28 @@ void test_logdb(logdb_log_db* (*new_func)())
     u_assert_int_eq(logdb_load(db, dbtmpfile, false, &error), true);
     u_assert_int_eq(error, LOGDB_SUCCESS);
     u_assert_int_eq(logdb_count_keys(db), (sizeof(sampledata) / sizeof(sampledata[0])));
+
+    void *ptr;
+    int test = (ptr = new_func);
+    if(new_func == logdb_rbtree_new)
+    {
+        logdb_rbtree_db* handle = (logdb_rbtree_db *)db->cb_ctx;
+        size_t size = rbtree_count(handle->tree);
+
+        nodetest = NULL;
+        while ((nodetest = rbtree_enumerate_next(handle->tree)))
+        {
+            rec = (logdb_record *)nodetest->info;
+            utils_bin_to_hex((unsigned char *)rec->key->str, rec->key->len, bufs[cnt]);
+
+            for(i = 0; i < cnt; i++)
+            {
+                u_assert_int_eq(strcmp(bufs[i], bufs[cnt]) != 0, 1);
+            }
+            cnt++;
+        }
+        u_assert_int_eq(size, cnt);
+    }
 
     for (i = 0; i < (sizeof(sampledata) / sizeof(sampledata[0])); i++) {
         const struct txtest *tx = &sampledata[i];
