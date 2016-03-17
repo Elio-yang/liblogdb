@@ -56,7 +56,7 @@ void logdb_rbtree_free(void *ctx);
 LIBLOGDB_API void logdb_rbtree_init(logdb_log_db* db);
 
 /** appends record to the rbtree */
-LIBLOGDB_API void logdb_rbtree_append(void* ctx, logdb_record *rec);
+LIBLOGDB_API void logdb_rbtree_append(void* ctx, logdb_bool load_phase, logdb_record *rec);
 
 /** find a record by key */
 LIBLOGDB_API cstring * logdb_rbtree_find(logdb_log_db* db, struct buffer *key);

@@ -182,7 +182,7 @@ logdb_bool logdb_load(logdb_log_db* handle, const char *file_path, logdb_bool cr
            this function.
          */
         if (handle->mem_mapper && handle->mem_mapper->append_cb)
-            handle->mem_mapper->append_cb(handle->cb_ctx, rec);
+            handle->mem_mapper->append_cb(handle->cb_ctx, true, rec);
     }
     logdb_record_free(rec);
 
@@ -269,7 +269,7 @@ void logdb_append(logdb_log_db* db, struct buffer *key, struct buffer *val)
 
     /* update mem mapped database */
     if (db->mem_mapper && db->mem_mapper->append_cb)
-        db->mem_mapper->append_cb(db->cb_ctx, rec);
+        db->mem_mapper->append_cb(db->cb_ctx, false, rec);
 }
 
 cstring * logdb_find_cache(logdb_log_db* db, struct buffer *key)

@@ -60,7 +60,7 @@ void logdb_llist_db_free(void *ctx);
 LIBLOGDB_API void logdb_llistdb_init(logdb_log_db* db);
 
 /** appends record to the mem db */
-LIBLOGDB_API void logdb_llistdb_append(void* ctx, logdb_record *rec);
+LIBLOGDB_API void logdb_llistdb_append(void* ctx, logdb_bool load_phase, logdb_record *rec);
 
 LIBLOGDB_API cstring * logdb_llistdb_find(logdb_log_db* db, struct buffer *key);
 
