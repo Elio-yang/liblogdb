@@ -67,11 +67,23 @@ typedef struct logdb_log_db {
 /* function pointer interface for flexible memory mapping functions*/
 struct logdb_memmapper_
 {
-    void (*append_cb)(void*, logdb_record *); /* callback called when appending (incl. deletes) a record */
-    void (*init_cb)(logdb_log_db*); /* callback called when initializing the database */
-    void (*cleanup_cb)(void*); /* callback called when database gets destroyed */
-    cstring* (*find_cb)(logdb_log_db*, struct buffer*); /* callback for finding a record with given key */
-    size_t (*size_cb)(logdb_log_db*); /* callback which expect the get back the total amount of keys in the database */
+    /* callback called when appending (incl. deletes) a record 
+       the 2nd parameter (bool) tells the cb if the record was added
+       during the load wallet phase
+     */
+    void (*append_cb)(void*, logdb_bool, logdb_record *);
+
+    /* callback called when initializing the database */
+    void (*init_cb)(logdb_log_db*);
+
+    /* callback called when database gets destroyed */
+    void (*cleanup_cb)(void*);
+
+    /* callback for finding a record with given key */
+    cstring* (*find_cb)(logdb_log_db*, struct buffer*);
+
+    /* callback which expect the get back the total amount of keys in the database */
+    size_t (*size_cb)(logdb_log_db*);
 };
 
 /* DB HANDLING

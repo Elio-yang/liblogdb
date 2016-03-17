@@ -67,11 +67,12 @@ void logdb_llistdb_init(logdb_log_db* db)
     db->cb_ctx = handle;
 }
 
-void logdb_llistdb_append(void* ctx, logdb_record *rec)
+void logdb_llistdb_append(void* ctx, logdb_bool load_phase, logdb_record *rec)
 {
     logdb_llist_db *handle = (logdb_llist_db *)ctx;
     logdb_record *rec_dup;
     logdb_record *current_db_head;
+    UNUSED(load_phase);
 
     if (rec->mode == RECORD_TYPE_ERASE && handle->head)
     {

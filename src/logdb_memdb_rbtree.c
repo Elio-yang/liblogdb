@@ -82,12 +82,13 @@ void logdb_rbtree_init(logdb_log_db* db)
     db->cb_ctx = handle;
 }
 
-void logdb_rbtree_append(void* ctx, logdb_record *rec)
+void logdb_rbtree_append(void* ctx, logdb_bool load_phase, logdb_record *rec)
 {
     logdb_record *rec_new;
-
     /* get the rbtree struct from the context */
     logdb_rbtree_db *handle = (logdb_rbtree_db *)ctx;
+    UNUSED(load_phase);
+    
     if (!handle)
         return;
 
