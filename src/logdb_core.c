@@ -62,7 +62,7 @@ logdb_log_db* logdb_new()
 
     /* use a linked list for default memory mapping */
     /* Will be slow */
-    logdb_set_memmapper(db, &logdb_llistdb_mapper);
+    logdb_set_memmapper(db, &logdb_llistdb_mapper, NULL);
 
     return db;
 }
@@ -72,15 +72,22 @@ logdb_log_db* logdb_rbtree_new()
     logdb_log_db* db = logdb_new_internal();
 
     /* use a red black tree as default memory mapping */
-    logdb_set_memmapper(db, &logdb_rbtree_mapper);
+    logdb_set_memmapper(db, &logdb_rbtree_mapper, NULL);
     return db;
 }
 
-void logdb_set_memmapper(logdb_log_db* db, logdb_memmapper *mapper)
+void logdb_set_memmapper(logdb_log_db* db, logdb_memmapper *mapper, void *ctx)
 {
+    /* allow the previos memory mapper to do a cleanup */
+    if (db->mem_mapper && db->mem_mapper->cleanup_cb)
+        db->mem_mapper->cleanup_cb(db->cb_ctx);
+
     db->mem_mapper = mapper;
     if (db->mem_mapper && db->mem_mapper->init_cb)
         db->mem_mapper->init_cb(db);
+
+    if (ctx)
+        db->cb_ctx = ctx;
 }
 
 void logdb_free_cachelist(logdb_log_db* db)

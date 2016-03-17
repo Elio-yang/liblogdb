@@ -102,7 +102,7 @@ LIBLOGDB_API void logdb_free(logdb_log_db* db);
     the callback will be called when a record will be loaded from disk, appended, deleted 
     this will allow to do a application specific memory mapping
  */
-LIBLOGDB_API void logdb_set_memmapper(logdb_log_db* db, logdb_memmapper *mapper);
+LIBLOGDB_API void logdb_set_memmapper(logdb_log_db* db, logdb_memmapper *mapper, void *ctx);
 
 /** loads given file as database (memory mapping) */
 LIBLOGDB_API logdb_bool logdb_load(logdb_log_db* handle, const char *file_path, logdb_bool create, enum logdb_error *error);
