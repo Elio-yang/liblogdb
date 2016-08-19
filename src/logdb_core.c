@@ -76,6 +76,36 @@ logdb_log_db* logdb_rbtree_new()
     return db;
 }
 
+logdb_txn* logdb_txn_new()
+{
+    logdb_txn* txn;
+    txn = calloc(1, sizeof(*txn));
+    txn->txn_head = NULL;
+    return txn;
+}
+
+void logdb_free_txn_records(logdb_txn* txn)
+{
+    /* free the unwritten records list */
+    logdb_record *rec = txn->txn_head;
+    while (rec)
+    {
+        logdb_record *prev_rec = rec->prev;
+        logdb_record_free(rec);
+        rec = prev_rec;
+    }
+    txn->txn_head = NULL;
+}
+
+void logdb_txn_free(logdb_txn* txn)
+{
+    if (!txn)
+        return;
+
+    logdb_free_txn_records(txn);
+    free(txn);
+}
+
 void logdb_set_memmapper(logdb_log_db* db, logdb_memmapper *mapper, void *ctx)
 {
     /* allow the previos memory mapper to do a cleanup */
@@ -243,16 +273,16 @@ logdb_bool logdb_flush(logdb_log_db* db)
     return true;
 }
 
-void logdb_delete(logdb_log_db* db, struct buffer *key)
+void logdb_delete(logdb_log_db* db, logdb_txn *txn, struct buffer *key)
 {
     if (key == NULL)
         return;
 
     /* A NULL value will result in a delete-mode record */
-    logdb_append(db, key, NULL);
+    logdb_append(db, txn, key, NULL);
 }
 
-void logdb_append(logdb_log_db* db, struct buffer *key, struct buffer *val)
+void logdb_append(logdb_log_db* db, logdb_txn *txn, struct buffer *key, struct buffer *val)
 {
     logdb_record *rec;
     logdb_record *current_head;
@@ -262,7 +292,10 @@ void logdb_append(logdb_log_db* db, struct buffer *key, struct buffer *val)
     
     rec = logdb_record_new();
     logdb_record_set(rec, key, val);
-    current_head = db->cache_head;
+    if (txn)
+        current_head = txn->txn_head;
+    else
+        current_head = db->cache_head;
 
     /* if the list is NOT empty, link the current head */
     if (current_head != NULL)
@@ -272,11 +305,33 @@ void logdb_append(logdb_log_db* db, struct buffer *key, struct buffer *val)
     rec->prev = current_head;
 
     /* set the current head */
-    db->cache_head = rec;
+    if (txn)
+        txn->txn_head = rec;
+    else
+        db->cache_head = rec;
 
-    /* update mem mapped database */
-    if (db->mem_mapper && db->mem_mapper->append_cb)
+    /* update mem mapped database (only non TXN) */
+    if (db->mem_mapper && db->mem_mapper->append_cb &&!txn)
         db->mem_mapper->append_cb(db->cb_ctx, false, rec);
+}
+
+void logdb_txn_commit(logdb_log_db* db, logdb_txn *txn)
+{
+    logdb_record *work_head = txn->txn_head;
+    /* search deepest non written record */
+    while (work_head != NULL)
+    {
+        if (work_head->prev != NULL)
+            work_head = work_head->prev;
+        else
+            break;
+    }
+    /* write records */
+    while (work_head != NULL)
+    {
+        logdb_append(db, NULL, work_head->key, work_head->value);
+        work_head = work_head->next;
+    }
 }
 
 cstring * logdb_find_cache(logdb_log_db* db, struct buffer *key)
