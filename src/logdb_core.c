@@ -273,7 +273,7 @@ logdb_bool logdb_flush(logdb_log_db* db)
     return true;
 }
 
-void logdb_delete(logdb_log_db* db, logdb_txn *txn, struct buffer *key)
+void logdb_delete(logdb_log_db* db, logdb_txn *txn, cstring *key)
 {
     if (key == NULL)
         return;
@@ -282,7 +282,7 @@ void logdb_delete(logdb_log_db* db, logdb_txn *txn, struct buffer *key)
     logdb_append(db, txn, key, NULL);
 }
 
-void logdb_append(logdb_log_db* db, logdb_txn *txn, struct buffer *key, struct buffer *val)
+void logdb_append(logdb_log_db* db, logdb_txn *txn, cstring *key, cstring *val)
 {
     logdb_record *rec;
     logdb_record *current_head;
@@ -334,12 +334,12 @@ void logdb_txn_commit(logdb_log_db* db, logdb_txn *txn)
     }
 }
 
-cstring * logdb_find_cache(logdb_log_db* db, struct buffer *key)
+cstring * logdb_find_cache(logdb_log_db* db, cstring *key)
 {
     return logdb_record_find_desc(db->cache_head, key);
 }
 
-cstring * logdb_find(logdb_log_db* db, struct buffer *key)
+cstring * logdb_find(logdb_log_db* db, cstring *key)
 {
     if (db->mem_mapper && db->mem_mapper->find_cb)
         return db->mem_mapper->find_cb(db, key);

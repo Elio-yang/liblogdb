@@ -30,7 +30,6 @@
 #include <logdb/logdb_base.h>
 #include <logdb/logdb_rec.h>
 #include <logdb/sha2.h>
-#include <logdb/buffer.h>
 
 #include <stdint.h>
 #include <stdio.h>
@@ -84,7 +83,7 @@ struct logdb_memmapper_
     void (*cleanup_cb)(void*);
 
     /* callback for finding a record with given key */
-    cstring* (*find_cb)(logdb_log_db*, struct buffer*);
+    cstring* (*find_cb)(logdb_log_db*, cstring *);
 
     /* callback which expect the get back the total amount of keys in the database */
     size_t (*size_cb)(logdb_log_db*);
@@ -115,14 +114,14 @@ LIBLOGDB_API logdb_bool logdb_load(logdb_log_db* handle, const char *file_path, 
 LIBLOGDB_API logdb_bool logdb_flush(logdb_log_db* db);
 
 /** deletes record with key */
-LIBLOGDB_API void logdb_delete(logdb_log_db* db, logdb_txn *txn, struct buffer *key);
+LIBLOGDB_API void logdb_delete(logdb_log_db* db, logdb_txn *txn, cstring *key);
 
 /** appends record to the logdb */
-LIBLOGDB_API void logdb_append(logdb_log_db* db, logdb_txn *txn, struct buffer *key, struct buffer *value);
+LIBLOGDB_API void logdb_append(logdb_log_db* db, logdb_txn *txn, cstring *key, cstring *value);
 
 /** find and get value from key */
-LIBLOGDB_API cstring * logdb_find_cache(logdb_log_db* db, struct buffer *key);
-LIBLOGDB_API cstring * logdb_find(logdb_log_db* db, struct buffer *key);
+LIBLOGDB_API cstring * logdb_find_cache(logdb_log_db* db, cstring *key);
+LIBLOGDB_API cstring * logdb_find(logdb_log_db* db, cstring *key);
 
 /** get the amount of in-memory-records */
 LIBLOGDB_API size_t logdb_cache_size(logdb_log_db* db);
