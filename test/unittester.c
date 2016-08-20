@@ -19,7 +19,6 @@ extern void test_sha_256();
 extern void test_sha_512();
 extern void test_sha_hmac();
 extern void test_cstr();
-extern void test_buffer();
 extern void test_utils();
 extern void test_serialize();
 extern void test_red_black_tree();
@@ -36,7 +35,6 @@ int main()
     u_run_test(test_sha_hmac);
     u_run_test(test_utils);
     u_run_test(test_cstr);
-    u_run_test(test_buffer);
     u_run_test(test_serialize);
     u_run_test(test_red_black_tree);
     u_run_test(test_logdb_memdb);

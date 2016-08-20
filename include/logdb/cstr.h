@@ -47,6 +47,7 @@ typedef struct cstring {
 LIBLOGDB_API cstring* cstr_new(const char* init_str);
 LIBLOGDB_API cstring* cstr_new_sz(size_t sz);
 LIBLOGDB_API cstring* cstr_new_buf(const void* buf, size_t sz);
+LIBLOGDB_API cstring* cstr_new_cstr(cstring* cstr);
 LIBLOGDB_API void cstr_free(cstring* s, int free_buf);
 
 LIBLOGDB_API int cstr_equal(const cstring* a, const cstring* b);
@@ -57,7 +58,7 @@ LIBLOGDB_API int cstr_erase(cstring* s, size_t pos, ssize_t len);
 LIBLOGDB_API int cstr_append_buf(cstring* s, const void* buf, size_t sz);
 LIBLOGDB_API int cstr_append_cstr(cstring* s, cstring *append);
 
-    LIBLOGDB_API int cstr_append_c(cstring* s, char ch);
+LIBLOGDB_API int cstr_append_c(cstring* s, char ch);
 
 #ifdef __cplusplus
 }

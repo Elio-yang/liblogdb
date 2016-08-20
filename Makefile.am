@@ -10,9 +10,8 @@ include_HEADERS = \
     include/logdb/logdb_rec.h \
     include/logdb/logdb_memdb_llist.h \
     include/logdb/logdb_memdb_rbtree.h \
-	include/logdb/cstr.h \
+    include/logdb/cstr.h \
     include/logdb/serialize.h \
-    include/logdb/buffer.h \
     include/logdb/sha2.h \
     include/logdb/utils.h \
     include/logdb/portable_endian.h \
@@ -24,11 +23,10 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = liblogdb.pc
 
 liblogdb_la_SOURCES = \
-	src/sha2.c \
-	src/utils.c \
-	src/buffer.c \
-	src/cstr.c \
-	src/serialize.c \
+    src/sha2.c \
+    src/utils.c \
+    src/cstr.c \
+    src/serialize.c \
     src/logdb_core.c \
     src/logdb_memdb_llist.c \
     src/logdb_memdb_rbtree.c \
@@ -41,13 +39,12 @@ if USE_TESTS
 noinst_PROGRAMS = tests
 tests_LDADD = liblogdb.la
 tests_SOURCES = \
-	test/utest.h \
-	test/unittester.c \
-	test/sha2_tests.c \
-	test/cstr_tests.c \
-	test/buffer_tests.c \
-	test/utils_tests.c \
-	test/serialize_tests.c \
+    test/utest.h \
+    test/unittester.c \
+    test/sha2_tests.c \
+    test/cstr_tests.c \
+    test/utils_tests.c \
+    test/serialize_tests.c \
     test/logdb_tests_sample.h \
     test/logdb_tests.c \
     test/tests_red_black_tree.c
