@@ -206,28 +206,28 @@ logdb_bool logdb_load(logdb_log_db* handle, const char *file_path, logdb_bool cr
             return false;
         }
         handle->support_flags = le32toh(v);
-    }
 
-    rec = logdb_record_new();
-    while (logdb_record_deser_from_file(rec, handle, &record_error))
-    {
+        rec = logdb_record_new();
+        while (logdb_record_deser_from_file(rec, handle, &record_error))
+        {
+            if (record_error != LOGDB_SUCCESS)
+                break;
+
+            /* if a memory mapping function was provided,
+             pass the record together with the context to
+             this function.
+             */
+            if (handle->mem_mapper && handle->mem_mapper->append_cb)
+                handle->mem_mapper->append_cb(handle->cb_ctx, true, rec);
+        }
+        logdb_record_free(rec);
+
         if (record_error != LOGDB_SUCCESS)
-            break;
-
-        /* if a memory mapping function was provided,
-           pass the record together with the context to
-           this function.
-         */
-        if (handle->mem_mapper && handle->mem_mapper->append_cb)
-            handle->mem_mapper->append_cb(handle->cb_ctx, true, rec);
-    }
-    logdb_record_free(rec);
-
-    if (record_error != LOGDB_SUCCESS)
-    {
-        if (error)
-            *error = record_error;
-        return false;
+        {
+            if (error)
+                *error = record_error;
+            return false;
+        }
     }
 
     return true;
